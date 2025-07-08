@@ -59,6 +59,23 @@ $(document).ready(function() {
   });
 });
 
+// Hàm cập nhật badge giỏ hàng
+function updateCartBadge() {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!user || !user.user_id) {
+    $('#cart-badge').hide();
+    return;
+  }
+  $.get('http://localhost/persolwebstore/backend/api/cart.php?user_id=' + user.user_id, function(res) {
+    const count = res.cart ? res.cart.reduce((sum, item) => sum + item.quantity, 0) : 0;
+    if (count > 0) {
+      $('#cart-badge').text(count).show();
+    } else {
+      $('#cart-badge').hide();
+    }
+  }, 'json');
+}
+
 // Dummy loader cho các section
 function loadHome() {
   $('#spa-content').html('<h2>Chào mừng đến với Persol Webstore!</h2><p>Website kính mắt chính hãng: Ray-Ban, Oakley, Contact Lens, Sunglasses...</p>');

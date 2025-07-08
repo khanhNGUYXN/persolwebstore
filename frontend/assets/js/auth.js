@@ -4,7 +4,7 @@ function loadLogin() {
     <div class="auth-box">
       <h2 class="text-center mb-4">Đăng nhập</h2>
       <form id="login-form">
-        <div class="mb-3"><label>Email</label><input type="email" class="form-control" name="email" required></div>
+        <div class="mb-3"><label>Tên đăng nhập hoặc Email</label><input type="text" class="form-control" name="login" required></div>
         <div class="mb-3"><label>Mật khẩu</label><input type="password" class="form-control" name="password" required></div>
         <button class="btn btn-primary w-100 py-2 fw-bold" type="submit">Đăng nhập</button>
       </form>
@@ -14,13 +14,13 @@ function loadLogin() {
   `);
   $('#login-form').on('submit', function(e) {
     e.preventDefault();
-    const email = this.email.value;
+    const login = this.login.value;
     const password = this.password.value;
     $.ajax({
-      url: 'http://localhost/backend/api/auth.php?action=login',
+      url: 'http://localhost/persolwebstore/backend/api/auth.php?action=login',
       method: 'POST',
       contentType: 'application/json',
-      data: JSON.stringify({email, password}),
+      data: JSON.stringify({login, password}),
       success: function(res) {
         localStorage.setItem('user', JSON.stringify(res));
         updateAuthMenu();
@@ -38,6 +38,8 @@ function loadRegister() {
     <div class="auth-box">
       <h2 class="text-center mb-4">Đăng ký</h2>
       <form id="register-form">
+        <div class="mb-3"><label>Tên đăng nhập</label><input type="text" class="form-control" name="username" required></div>
+        <div class="mb-3"><label>Họ tên</label><input type="text" class="form-control" name="fullname" required></div>
         <div class="mb-3"><label>Email</label><input type="email" class="form-control" name="email" required></div>
         <div class="mb-3"><label>Mật khẩu</label><input type="password" class="form-control" name="password" required></div>
         <div class="mb-3"><label>Nhập lại mật khẩu</label><input type="password" class="form-control" name="repassword" required></div>
@@ -49,6 +51,8 @@ function loadRegister() {
   `);
   $('#register-form').on('submit', function(e) {
     e.preventDefault();
+    const username = this.username.value;
+    const fullname = this.fullname.value;
     const email = this.email.value;
     const password = this.password.value;
     const repassword = this.repassword.value;
@@ -57,10 +61,10 @@ function loadRegister() {
       return;
     }
     $.ajax({
-      url: 'http://localhost/backend/api/auth.php?action=register',
+      url: 'http://localhost/persolwebstore/backend/api/auth.php?action=register',
       method: 'POST',
       contentType: 'application/json',
-      data: JSON.stringify({email, password}),
+      data: JSON.stringify({username, fullname, email, password, repassword}),
       success: function(res) {
         $('#register-msg').removeClass('text-danger').addClass('text-success').text('Đăng ký thành công! Vui lòng đăng nhập.');
       },
@@ -76,7 +80,7 @@ function updateAuthMenu() {
   if (user && user.user_id) {
     $('#auth-menu').addClass('d-none');
     $('#user-menu').removeClass('d-none');
-    $('#user-info').text(user.email || user.user_id);
+    $('#user-info').text(user.fullname || user.username || user.email);
   } else {
     $('#auth-menu').removeClass('d-none');
     $('#user-menu').addClass('d-none');

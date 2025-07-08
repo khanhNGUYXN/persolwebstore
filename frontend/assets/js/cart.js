@@ -35,7 +35,7 @@ $(document).on('change', '.cart-qty', function() {
     method: 'POST',
     contentType: 'application/json',
     data: JSON.stringify({product_id, quantity}),
-    success: function() { loadCart(); }
+    success: function() { loadCart(); updateCartBadge(); }
   });
 });
 
@@ -47,7 +47,7 @@ $(document).on('click', '.cart-remove', function() {
     method: 'DELETE',
     contentType: 'application/json',
     data: JSON.stringify({product_id}),
-    success: function() { loadCart(); }
+    success: function() { loadCart(); updateCartBadge(); }
   });
 });
 
@@ -68,6 +68,6 @@ function addToCart(product_id, quantity = 1) {
     method: 'POST',
     contentType: 'application/json',
     data: JSON.stringify({product_id, quantity}),
-    success: function() { alert('Đã thêm vào giỏ!'); }
+    success: function() { alert('Đã thêm vào giỏ!'); updateCartBadge(); }
   });
 } 

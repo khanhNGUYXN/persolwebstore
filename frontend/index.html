@@ -9,6 +9,10 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </head>
@@ -56,12 +60,6 @@
               >
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#cart" id="menu-cart">Giỏ hàng</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#orders" id="menu-orders">Đơn hàng</a>
-            </li>
-            <li class="nav-item">
               <a class="nav-link" href="#contact" id="menu-contact">Liên hệ</a>
             </li>
           </ul>
@@ -78,6 +76,18 @@
           <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-none" id="user-menu">
             <li class="nav-item">
               <span class="nav-link" id="user-info"></span>
+            </li>
+            <li class="nav-item position-relative">
+              <a class="nav-link" href="#cart" id="menu-cart">
+                <span class="me-1">Giỏ hàng</span>
+                <i class="bi bi-cart3"></i>
+                <span
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                  id="cart-badge"
+                  style="font-size: 0.8em; display: none"
+                  >0</span
+                >
+              </a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="#logout" id="menu-logout">Đăng xuất</a>
