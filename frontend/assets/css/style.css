@@ -1,0 +1,45 @@
+body { background: #f8f9fa; }
+#logo { border-radius: 8px; }
+#main-menu .nav-link { transition: background 0.3s, color 0.3s; }
+#main-menu .nav-link:hover, #main-menu .nav-link.active { background: #007bff; color: #fff !important; border-radius: 4px; }
+#spa-content { min-height: 60vh; }
+.footer { font-size: 0.95rem; opacity: 0.95; }
+.fade-in { animation: fadeIn 0.5s; }
+.fade-out { animation: fadeOut 0.5s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+@media (max-width: 768px) { #logo { height: 36px; } .h4 { font-size: 1.1rem; } } 
+.auth-box {
+  max-width: 400px;
+  margin: 40px auto 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 32px 28px 24px 28px;
+  border: 1px solid #e3e3e3;
+}
+.auth-box h2 {
+  font-weight: 700;
+  color: #007bff;
+}
+.auth-box .btn-primary, .auth-box .btn-success {
+  font-size: 1.1rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,123,255,0.08);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.auth-box .btn-primary:hover, .auth-box .btn-success:hover {
+  background: #0056b3;
+  box-shadow: 0 4px 16px rgba(0,123,255,0.15);
+}
+.auth-box label {
+  font-weight: 500;
+}
+.auth-box input[type="email"], .auth-box input[type="password"] {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  padding: 8px 12px;
+}
+.auth-box .small {
+  color: #888;
+} 
