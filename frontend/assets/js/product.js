@@ -26,38 +26,153 @@ const sampleProducts = [
   }
 ];
 
-// Hàm load danh sách sản phẩm (dùng dữ liệu mẫu nếu chưa có backend)
-function loadProducts() {
+// Hàm load danh sách sản phẩm (dùng backend nếu có)
+function loadProducts(category_id = null) {
   $('#spa-content').html('<h2>Danh sách sản phẩm</h2><div id="product-list">Đang tải...</div>');
-  let html = '<div class="row">';
-  sampleProducts.forEach(function(p) {
-    html += `<div class='col-md-4 mb-3'><div class='card h-100'>
-      <img src='${p.image}' class='card-img-top' alt='${p.name}'>
-      <div class='card-body'>
-        <h5 class='card-title'>${p.name}</h5>
-        <p class='card-text'>${p.short_desc}</p>
-        <button class='btn btn-primary' onclick='showProductDetail(${p.id})'>Xem chi tiết</button>
-      </div></div></div>`;
-  });
-  html += '</div>';
-  $('#product-list').html(html);
+  let url = 'http://localhost/persolwebstore/backend/api/products.php';
+  if (category_id) url += '?category_id=' + category_id;
+  $.get(url, function(res) {
+    let html = '<div class="row">';
+    if (!res.products || res.products.length === 0) {
+      html += '<div class="col-12 text-center text-muted">Không có sản phẩm nào trong danh mục này.</div>';
+    } else {
+      (res.products || []).forEach(function(p, idx) {
+        let images = (p.images && p.images.length) ? p.images : (p.image_url ? [p.image_url] : []);
+        let carouselId = 'carousel-list-' + idx;
+        let carousel = '';
+        if (images.length > 1) {
+          carousel += `<div id='${carouselId}' class='carousel slide' data-bs-ride='carousel'><div class='carousel-inner'>`;
+          images.forEach((img, i) => {
+            carousel += `<div class='carousel-item${i===0?' active':''}'><img src='${img}' class='d-block w-100' style='height:180px;object-fit:contain'></div>`;
+          });
+          carousel += `</div><button class='carousel-control-prev' type='button' data-bs-target='#${carouselId}' data-bs-slide='prev'><span class='carousel-control-prev-icon'></span></button><button class='carousel-control-next' type='button' data-bs-target='#${carouselId}' data-bs-slide='next'><span class='carousel-control-next-icon'></span></button></div>`;
+        } else if (images.length === 1) {
+          carousel = `<img src='${images[0]}' class='card-img-top' alt='${p.name}' style='height:180px;object-fit:contain'>`;
+        }
+        html += `<div class='col-md-4 mb-3'><div class='card h-100'>
+          ${carousel}
+          <div class='card-body'>
+            <h5 class='card-title'>${p.name}</h5>
+            <p class='card-text'>${p.description || ''}</p>
+            <button class='btn btn-primary' onclick='showProductDetail(${p.product_id})'>Xem chi tiết</button>
+            <button class='btn btn-success ms-2 add-to-cart-btn' data-id='${p.product_id}'>Thêm vào giỏ</button>
+          </div></div></div>`;
+      });
+    }
+    html += '</div>';
+    $('#product-list').html(html);
+  }, 'json');
 }
 
-// Hàm hiển thị chi tiết sản phẩm
+// Hàm hiển thị chi tiết sản phẩm (dùng backend)
 function showProductDetail(id) {
-  const p = sampleProducts.find(x => x.id === id);
-  let html = `<div class='card'>
-    <div class='row g-0'>
-      <div class='col-md-4'><img src='${p.image}' class='img-fluid rounded-start' alt='${p.name}'></div>
-      <div class='col-md-8'>
-        <div class='card-body'>
-          <h5 class='card-title'>${p.name}</h5>
-          <p class='card-text'>${p.description}</p>
-          <a href='${p.detail_file}' class='btn btn-outline-info' target='_blank'>Xem chi tiết sản phẩm</a>
-          <button class='btn btn-secondary ms-2' onclick='loadProducts()'>Quay lại</button>
+  $.get('http://localhost/persolwebstore/backend/api/products.php?id=' + id, function(res) {
+    const p = res.product;
+    let images = (p.images && p.images.length) ? p.images : (p.image_url ? [p.image_url] : []);
+    let carousel = '';
+    let carouselId = 'carousel-detail-' + id;
+    if (images.length > 1) {
+      carousel += `<div id='${carouselId}' class='carousel slide mb-3' data-bs-ride='carousel'><div class='carousel-inner'>`;
+      images.forEach((img, i) => {
+        carousel += `<div class='carousel-item${i===0?' active':''}'><img src='${img}' class='d-block w-100' style='max-height:320px;object-fit:contain'></div>`;
+      });
+      carousel += `</div><button class='carousel-control-prev' type='button' data-bs-target='#${carouselId}' data-bs-slide='prev'><span class='carousel-control-prev-icon'></span></button><button class='carousel-control-next' type='button' data-bs-target='#${carouselId}' data-bs-slide='next'><span class='carousel-control-next-icon'></span></button></div>`;
+    } else if (images.length === 1) {
+      carousel = `<img src='${images[0]}' class='img-fluid rounded-start mb-3' alt='${p.name}' style='max-height:320px;object-fit:contain'>`;
+    }
+    let html = `<div class='card'>
+      <div class='row g-0'>
+        <div class='col-md-5'>${carousel}</div>
+        <div class='col-md-7'>
+          <div class='card-body'>
+            <h5 class='card-title'>${p.name}</h5>
+            <p class='card-text'>${p.description || ''}</p>`;
+    if (p.detail_file && (p.detail_file.endsWith('.pdf') || p.detail_file.endsWith('.doc') || p.detail_file.endsWith('.docx'))) {
+      html += `<a href='${p.detail_file}' class='btn btn-outline-info' target='_blank'>Tải file mô tả</a>`;
+    }
+    html += `<button class='btn btn-secondary ms-2' onclick='loadProducts()'>Quay lại</button>
+          </div>
         </div>
       </div>
-    </div>
-  </div>`;
-  $('#spa-content').html(html);
+    </div>`;
+    $('#spa-content').html(html);
+  }, 'json');
+}
+
+// Hàm render dropdown categories dạng cây
+function renderCategoryDropdown(categories, parent = null, level = 0) {
+  let html = '';
+  categories.filter(c => c.parent_id == parent).forEach(c => {
+    let hasChild = categories.some(x => x.parent_id == c.category_id);
+    if (hasChild) {
+      html += `<li class="dropdown-submenu position-relative">
+        <a class="dropdown-item dropdown-toggle" href="#category-${c.category_id}" data-bs-toggle="dropdown">${c.name}</a>
+        <ul class="dropdown-menu">
+          ${renderCategoryDropdown(categories, c.category_id, level+1)}
+        </ul>
+      </li>`;
+    } else {
+      html += `<li><a class="dropdown-item" href="#category-${c.category_id}">${c.name}</a></li>`;
+    }
+  });
+  return html;
+}
+
+$(document).ready(function() {
+  // Lấy categories và render dropdown
+  $.get('http://localhost/persolwebstore/backend/api/categories.php', function(res) {
+    if (res.categories) {
+      $('#dropdown-categories').html(renderCategoryDropdown(res.categories));
+    }
+  }, 'json');
+
+  // Dropdown hover mở (không cần click)
+  $('#menu-products-dropdown').on('mouseenter', function() {
+    $(this).addClass('show');
+    $(this).find('.dropdown-menu').addClass('show');
+  }).on('mouseleave', function() {
+    $(this).removeClass('show');
+    $(this).find('.dropdown-menu').removeClass('show');
+  });
+
+  // Bắt sự kiện click vào category để lọc sản phẩm
+  $(document).on('click', '#dropdown-categories a.dropdown-item', function(e) {
+    const hash = $(this).attr('href');
+    if (hash.startsWith('#category-')) {
+      window.location.hash = hash;
+      e.preventDefault();
+    }
+  });
+
+  // Khi click vào menu Sản phẩm, luôn load toàn bộ sản phẩm và đóng dropdown
+  $(document).on('click', '#menu-products', function(e) {
+    window.location.hash = '#products';
+    // Đóng dropdown nếu đang mở
+    $('#menu-products-dropdown').removeClass('show');
+    $('#dropdown-categories').removeClass('show');
+    e.preventDefault();
+  });
+
+  // Sự kiện thêm vào giỏ
+  $(document).on('click', '.add-to-cart-btn', function() {
+    const product_id = $(this).data('id');
+    addToCart(product_id, 1);
+  });
+});
+
+// Hook vào hashchange để load đúng sản phẩm
+$(window).on('hashchange', function() {
+  if (location.hash.startsWith('#category-')) {
+    const catId = location.hash.replace('#category-', '');
+    loadProducts(catId);
+  } else if (location.hash === '#products' || location.hash === '' || location.hash === '#home') {
+    loadProducts();
+  }
+});
+// Khi vào trang lần đầu
+if (location.hash.startsWith('#category-')) {
+  const catId = location.hash.replace('#category-', '');
+  loadProducts(catId);
+} else if (location.hash === '#products' || location.hash === '' || location.hash === '#home') {
+  loadProducts();
 } 
