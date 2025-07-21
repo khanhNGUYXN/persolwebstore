@@ -4,17 +4,24 @@ function loadCart() {
     $('#spa-content').html('<div class="alert alert-warning">Vui lòng đăng nhập để xem giỏ hàng.</div>');
     return;
   }
-  $.get('http://localhost/backend/api/cart.php?user_id=' + user.user_id, function(res) {
+  $.get('http://localhost/persolwebstore/backend/api/cart.php?user_id=' + user.user_id, function(res) {
     let html = '<h2>Giỏ hàng</h2>';
     if (!res.cart || res.cart.length === 0) {
-      html += '<div>Giỏ hàng trống.</div>';
+      html += '<div class="alert alert-info">Giỏ hàng trống.</div>';
       $('#spa-content').html(html);
+      updateCartBadge();
       return;
     }
-    html += '<table class="table"><thead><tr><th>Sản phẩm</th><th>Giá</th><th>Số lượng</th><th></th></tr></thead><tbody>';
+    html += '<table class="table"><thead><tr><th>Ảnh</th><th>Sản phẩm</th><th>Giá</th><th>Số lượng</th><th></th></tr></thead><tbody>';
     res.cart.forEach(function(item) {
+      let img = '';
+      if (item.image_url) {
+        let matches = item.image_url.match(/https?:\/\/[^,\]\"]+/g);
+        img = matches && matches.length ? matches[0] : item.image_url;
+      }
       html += `<tr>
-        <td><img src='${item.image_url}' width='60'> ${item.name}</td>
+        <td><img src='${img}' width='60' onerror="this.onerror=null;this.src='https://via.placeholder.com/60x40?text=No+Image'"/></td>
+        <td>${item.name}</td>
         <td>${item.price.toLocaleString()} đ</td>
         <td><input type='number' min='1' value='${item.quantity}' class='form-control form-control-sm cart-qty' data-id='${item.product_id}'></td>
         <td><button class='btn btn-danger btn-sm cart-remove' data-id='${item.product_id}'>Xóa</button></td>
@@ -23,6 +30,7 @@ function loadCart() {
     html += '</tbody></table>';
     html += '<button class="btn btn-success" id="checkout-btn">Đặt hàng</button>';
     $('#spa-content').html(html);
+    updateCartBadge();
   }, 'json');
 }
 
@@ -31,7 +39,7 @@ $(document).on('change', '.cart-qty', function() {
   const product_id = $(this).data('id');
   const quantity = $(this).val();
   $.ajax({
-    url: 'http://localhost/backend/api/cart.php?user_id=' + user.user_id,
+    url: 'http://localhost/persolwebstore/backend/api/cart.php?user_id=' + user.user_id,
     method: 'POST',
     contentType: 'application/json',
     data: JSON.stringify({product_id, quantity}),
@@ -43,7 +51,7 @@ $(document).on('click', '.cart-remove', function() {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   const product_id = $(this).data('id');
   $.ajax({
-    url: 'http://localhost/backend/api/cart.php?user_id=' + user.user_id,
+    url: 'http://localhost/persolwebstore/backend/api/cart.php?user_id=' + user.user_id,
     method: 'DELETE',
     contentType: 'application/json',
     data: JSON.stringify({product_id}),
@@ -64,10 +72,13 @@ function addToCart(product_id, quantity = 1) {
     return;
   }
   $.ajax({
-    url: 'http://localhost/backend/api/cart.php?user_id=' + user.user_id,
+    url: 'http://localhost/persolwebstore/backend/api/cart.php?user_id=' + user.user_id,
     method: 'POST',
     contentType: 'application/json',
     data: JSON.stringify({product_id, quantity}),
-    success: function() { alert('Đã thêm vào giỏ!'); updateCartBadge(); }
+    success: function() {
+      alert('Đã thêm vào giỏ!');
+      updateCartBadge();
+    }
   });
 } 

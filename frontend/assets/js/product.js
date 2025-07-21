@@ -26,28 +26,47 @@ const sampleProducts = [
   }
 ];
 
+// Hàm lấy mảng link ảnh từ image_url (dù là JSON, [url1,url2], hay 1 link)
+function extractImageUrls(image_url) {
+  if (!image_url) return [];
+  // Nếu là mảng JSON chuẩn
+  try {
+    let arr = JSON.parse(image_url);
+    if (Array.isArray(arr)) return arr;
+  } catch (e) {}
+  // Nếu là chuỗi dạng [url1, url2] hoặc [ "url1", "url2" ]
+  let matches = image_url.match(/https?:\/\/[^\s,\]\"]+/g);
+  if (matches) return matches;
+  // Nếu chỉ là 1 link
+  if (image_url.trim().startsWith('http')) return [image_url.trim()];
+  return [];
+}
+
 // Hàm load danh sách sản phẩm (dùng backend nếu có)
-function loadProducts(category_id = null) {
+function loadProducts(category_id = null, page = 1) {
   $('#spa-content').html('<h2>Danh sách sản phẩm</h2><div id="product-list">Đang tải...</div>');
-  let url = 'http://localhost/persolwebstore/backend/api/products.php';
-  if (category_id) url += '?category_id=' + category_id;
+  let url = 'http://localhost/persolwebstore/backend/api/products.php?page=' + page + '&limit=10';
+  if (category_id) url += '&category_id=' + category_id;
   $.get(url, function(res) {
     let html = '<div class="row">';
     if (!res.products || res.products.length === 0) {
       html += '<div class="col-12 text-center text-muted">Không có sản phẩm nào trong danh mục này.</div>';
     } else {
       (res.products || []).forEach(function(p, idx) {
-        let images = (p.images && p.images.length) ? p.images : (p.image_url ? [p.image_url] : []);
+        let images = (Array.isArray(p.images) && p.images.length) ? p.images : extractImageUrls(p.image_url);
+        console.log('Ảnh sản phẩm:', p.image_url, images);
         let carouselId = 'carousel-list-' + idx;
         let carousel = '';
         if (images.length > 1) {
           carousel += `<div id='${carouselId}' class='carousel slide' data-bs-ride='carousel'><div class='carousel-inner'>`;
           images.forEach((img, i) => {
-            carousel += `<div class='carousel-item${i===0?' active':''}'><img src='${img}' class='d-block w-100' style='height:180px;object-fit:contain'></div>`;
+            carousel += `<div class='carousel-item${i===0?' active':''}'><img src='${img}' onerror="this.onerror=null;this.src='https://via.placeholder.com/180x120?text=No+Image'" class='d-block w-100' style='height:180px;object-fit:contain'></div>`;
           });
           carousel += `</div><button class='carousel-control-prev' type='button' data-bs-target='#${carouselId}' data-bs-slide='prev'><span class='carousel-control-prev-icon'></span></button><button class='carousel-control-next' type='button' data-bs-target='#${carouselId}' data-bs-slide='next'><span class='carousel-control-next-icon'></span></button></div>`;
         } else if (images.length === 1) {
-          carousel = `<img src='${images[0]}' class='card-img-top' alt='${p.name}' style='height:180px;object-fit:contain'>`;
+          carousel = `<img src='${images[0]}' onerror="this.onerror=null;this.src='https://via.placeholder.com/180x120?text=No+Image'" class='card-img-top' alt='${p.name}' style='height:180px;object-fit:contain'>`;
+        } else {
+          carousel = `<img src='https://via.placeholder.com/180x120?text=No+Image' class='card-img-top' alt='No image' style='height:180px;object-fit:contain'>`;
         }
         html += `<div class='col-md-4 mb-3'><div class='card h-100'>
           ${carousel}
@@ -60,6 +79,26 @@ function loadProducts(category_id = null) {
       });
     }
     html += '</div>';
+    // Render pagination
+    if (res.total > res.limit) {
+      html += '<nav><ul class="pagination justify-content-center">';
+      let totalPages = Math.ceil(res.total / res.limit);
+      let cur = res.page;
+      let show = 2;
+      let cat = category_id ? category_id : '';
+      if (cur > 1) {
+        html += `<li class='page-item'><a class='page-link' href='#${cat?`category-${cat}`:'products'}-page-1'>&laquo;</a></li>`;
+        html += `<li class='page-item'><a class='page-link' href='#${cat?`category-${cat}`:'products'}-page-${cur-1}'>&lt;</a></li>`;
+      }
+      for (let i = Math.max(1, cur - show); i <= Math.min(totalPages, cur + show); i++) {
+        html += `<li class='page-item${i==cur?' active':''}'><a class='page-link' href='#${cat?`category-${cat}`:'products'}-page-${i}'>${i}</a></li>`;
+      }
+      if (cur < totalPages) {
+        html += `<li class='page-item'><a class='page-link' href='#${cat?`category-${cat}`:'products'}-page-${cur+1}'>&gt;</a></li>`;
+        html += `<li class='page-item'><a class='page-link' href='#${cat?`category-${cat}`:'products'}-page-${totalPages}'>&raquo;</a></li>`;
+      }
+      html += '</ul></nav>';
+    }
     $('#product-list').html(html);
   }, 'json');
 }
@@ -68,7 +107,8 @@ function loadProducts(category_id = null) {
 function showProductDetail(id) {
   $.get('http://localhost/persolwebstore/backend/api/products.php?id=' + id, function(res) {
     const p = res.product;
-    let images = (p.images && p.images.length) ? p.images : (p.image_url ? [p.image_url] : []);
+    let images = (Array.isArray(p.images) && p.images.length) ? p.images : extractImageUrls(p.image_url);
+    console.log('Ảnh chi tiết:', p.image_url, images);
     let carousel = '';
     let carouselId = 'carousel-detail-' + id;
     if (images.length > 1) {
@@ -79,6 +119,8 @@ function showProductDetail(id) {
       carousel += `</div><button class='carousel-control-prev' type='button' data-bs-target='#${carouselId}' data-bs-slide='prev'><span class='carousel-control-prev-icon'></span></button><button class='carousel-control-next' type='button' data-bs-target='#${carouselId}' data-bs-slide='next'><span class='carousel-control-next-icon'></span></button></div>`;
     } else if (images.length === 1) {
       carousel = `<img src='${images[0]}' class='img-fluid rounded-start mb-3' alt='${p.name}' style='max-height:320px;object-fit:contain'>`;
+    } else {
+      carousel = `<img src='https://via.placeholder.com/320x180?text=No+Image' class='img-fluid rounded-start mb-3' alt='No image' style='max-height:320px;object-fit:contain'>`;
     }
     let html = `<div class='card'>
       <div class='row g-0'>
@@ -160,19 +202,33 @@ $(document).ready(function() {
   });
 });
 
-// Hook vào hashchange để load đúng sản phẩm
+// Hook vào hashchange để load đúng sản phẩm và trang
 $(window).on('hashchange', function() {
-  if (location.hash.startsWith('#category-')) {
-    const catId = location.hash.replace('#category-', '');
-    loadProducts(catId);
-  } else if (location.hash === '#products' || location.hash === '' || location.hash === '#home') {
-    loadProducts();
+  let hash = location.hash;
+  let catMatch = hash.match(/^#category-(\d+)(?:-page-(\d+))?$/);
+  let prodMatch = hash.match(/^#products(?:-page-(\d+))?$/);
+  if (catMatch) {
+    const catId = catMatch[1];
+    const page = catMatch[2] ? parseInt(catMatch[2]) : 1;
+    loadProducts(catId, page);
+  } else if (prodMatch) {
+    const page = prodMatch[1] ? parseInt(prodMatch[1]) : 1;
+    loadProducts(null, page);
   }
 });
 // Khi vào trang lần đầu
-if (location.hash.startsWith('#category-')) {
-  const catId = location.hash.replace('#category-', '');
-  loadProducts(catId);
-} else if (location.hash === '#products' || location.hash === '' || location.hash === '#home') {
-  loadProducts();
-} 
+(function() {
+  let hash = location.hash;
+  let catMatch = hash.match(/^#category-(\d+)(?:-page-(\d+))?$/);
+  let prodMatch = hash.match(/^#products(?:-page-(\d+))?$/);
+  if (catMatch) {
+    const catId = catMatch[1];
+    const page = catMatch[2] ? parseInt(catMatch[2]) : 1;
+    loadProducts(catId, page);
+  } else if (prodMatch) {
+    const page = prodMatch[1] ? parseInt(prodMatch[1]) : 1;
+    loadProducts(null, page);
+  } else {
+    loadProducts();
+  }
+})(); 
