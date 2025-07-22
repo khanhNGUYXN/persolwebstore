@@ -4,7 +4,7 @@ function loadOrders() {
     $('#spa-content').html('<div class="alert alert-warning">Vui lòng đăng nhập để xem đơn hàng.</div>');
     return;
   }
-  $.get('http://localhost/backend/api/order.php?user_id=' + user.user_id, function(res) {
+  $.get('http://localhost/persolwebstore/backend/api/order.php?user_id=' + user.user_id, function(res) {
     let html = '<h2>Đơn hàng của bạn</h2>';
     if (!res.orders || res.orders.length === 0) {
       html += '<div>Bạn chưa có đơn hàng nào.</div>';
@@ -29,7 +29,7 @@ function loadOrders() {
 $(document).on('click', '.order-detail', function() {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   const order_id = $(this).data('id');
-  $.get('http://localhost/backend/api/order.php?user_id=' + user.user_id + '&id=' + order_id, function(res) {
+  $.get('http://localhost/persolwebstore/backend/api/order.php?user_id=' + user.user_id + '&id=' + order_id, function(res) {
     let html = `<h2>Chi tiết đơn hàng #${order_id}</h2>`;
     html += `<div>Ngày: ${res.order.order_date} | Tổng tiền: ${res.order.total_amount.toLocaleString()} đ | Trạng thái: ${res.order.status}</div>`;
     html += '<table class="table"><thead><tr><th>Sản phẩm</th><th>Giá</th><th>Số lượng</th></tr></thead><tbody>';
@@ -86,25 +86,40 @@ $(document).on('submit', '#checkout-form', function(e) {
   };
   // 1. Tạo delivery_info
   $.ajax({
-    url: 'http://localhost/backend/api/order.php?user_id=' + user.user_id + '&action=delivery',
+    url: 'http://localhost/persolwebstore/backend/api/order.php?user_id=' + user.user_id + '&action=delivery',
     method: 'POST',
     contentType: 'application/json',
     data: JSON.stringify(data),
     success: function(res) {
+      console.log('Delivery response:', res);
+      if (!res.delivery_id) {
+        $('#checkout-msg').text('Lỗi tạo thông tin giao hàng (delivery_id null)');
+        return;
+      }
       // 2. Tạo transaction_info
       $.ajax({
-        url: 'http://localhost/backend/api/order.php?user_id=' + user.user_id + '&action=transaction',
+        url: 'http://localhost/persolwebstore/backend/api/order.php?user_id=' + user.user_id + '&action=transaction',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({payment_method: data.payment_method}),
         success: function(res2) {
+          console.log('Transaction response:', res2);
+          if (!res2.trans_id) {
+            $('#checkout-msg').text('Lỗi tạo thông tin thanh toán (trans_id null)');
+            return;
+          }
           // 3. Đặt hàng
           $.ajax({
-            url: 'http://localhost/backend/api/order.php?user_id=' + user.user_id,
+            url: 'http://localhost/persolwebstore/backend/api/order.php?user_id=' + user.user_id,
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({delivery_id: res.delivery_id, trans_id: res2.trans_id}),
             success: function(res3) {
+              console.log('Order response:', res3);
+              if (!res3.order_id) {
+                $('#checkout-msg').text('Lỗi tạo đơn hàng (order_id null)');
+                return;
+              }
               $('#checkout-msg').removeClass('text-danger').addClass('text-success').text('Đặt hàng thành công!');
               setTimeout(loadOrders, 1500);
             },
@@ -112,6 +127,9 @@ $(document).on('submit', '#checkout-form', function(e) {
               $('#checkout-msg').text(xhr.responseJSON?.error || 'Đặt hàng thất bại');
             }
           });
+        },
+        error: function(xhr) {
+          $('#checkout-msg').text(xhr.responseJSON?.error || 'Lỗi thông tin thanh toán');
         }
       });
     },
