@@ -54,17 +54,22 @@ function loadProducts(category_id = null, page = 1) {
     } else {
       (res.products || []).forEach(function(p, idx) {
         let images = (Array.isArray(p.images) && p.images.length) ? p.images : extractImageUrls(p.image_url);
-        console.log('Ảnh sản phẩm:', p.image_url, images);
         let carouselId = 'carousel-list-' + idx;
         let carousel = '';
         if (images.length > 1) {
-          carousel += `<div id='${carouselId}' class='carousel slide' data-bs-ride='carousel'><div class='carousel-inner'>`;
+          // Carousel indicators
+          let indicators = '<div class="carousel-indicators">';
           images.forEach((img, i) => {
-            carousel += `<div class='carousel-item${i===0?' active':''}'><img src='${img}' onerror="this.onerror=null;this.src='https://via.placeholder.com/180x120?text=No+Image'" class='d-block w-100' style='height:180px;object-fit:contain'></div>`;
+            indicators += `<button type='button' data-bs-target='#${carouselId}' data-bs-slide-to='${i}' class='${i===0?'active':''}' aria-current='${i===0?'true':'false'}' aria-label='Slide ${i+1}'></button>`;
+          });
+          indicators += '</div>';
+          carousel += `<div id='${carouselId}' class='carousel slide' data-bs-ride='carousel'>${indicators}<div class='carousel-inner'>`;
+          images.forEach((img, i) => {
+            carousel += `<div class='carousel-item${i===0?' active':''}'><img src='${img}' onerror=\"this.onerror=null;this.src='https://via.placeholder.com/180x120?text=No+Image'\" class='d-block w-100' style='height:180px;object-fit:contain'></div>`;
           });
           carousel += `</div><button class='carousel-control-prev' type='button' data-bs-target='#${carouselId}' data-bs-slide='prev'><span class='carousel-control-prev-icon'></span></button><button class='carousel-control-next' type='button' data-bs-target='#${carouselId}' data-bs-slide='next'><span class='carousel-control-next-icon'></span></button></div>`;
         } else if (images.length === 1) {
-          carousel = `<img src='${images[0]}' onerror="this.onerror=null;this.src='https://via.placeholder.com/180x120?text=No+Image'" class='card-img-top' alt='${p.name}' style='height:180px;object-fit:contain'>`;
+          carousel = `<img src='${images[0]}' onerror=\"this.onerror=null;this.src='https://via.placeholder.com/180x120?text=No+Image'\" class='card-img-top' alt='${p.name}' style='height:180px;object-fit:contain'>`;
         } else {
           carousel = `<img src='https://via.placeholder.com/180x120?text=No+Image' class='card-img-top' alt='No image' style='height:180px;object-fit:contain'>`;
         }
@@ -108,11 +113,16 @@ function showProductDetail(id) {
   $.get('http://localhost/persolwebstore/backend/api/products.php?id=' + id, function(res) {
     const p = res.product;
     let images = (Array.isArray(p.images) && p.images.length) ? p.images : extractImageUrls(p.image_url);
-    console.log('Ảnh chi tiết:', p.image_url, images);
     let carousel = '';
     let carouselId = 'carousel-detail-' + id;
     if (images.length > 1) {
-      carousel += `<div id='${carouselId}' class='carousel slide mb-3' data-bs-ride='carousel'><div class='carousel-inner'>`;
+      // Carousel indicators
+      let indicators = '<div class="carousel-indicators">';
+      images.forEach((img, i) => {
+        indicators += `<button type='button' data-bs-target='#${carouselId}' data-bs-slide-to='${i}' class='${i===0?'active':''}' aria-current='${i===0?'true':'false'}' aria-label='Slide ${i+1}'></button>`;
+      });
+      indicators += '</div>';
+      carousel += `<div id='${carouselId}' class='carousel slide mb-3' data-bs-ride='carousel'>${indicators}<div class='carousel-inner'>`;
       images.forEach((img, i) => {
         carousel += `<div class='carousel-item${i===0?' active':''}'><img src='${img}' class='d-block w-100' style='max-height:320px;object-fit:contain'></div>`;
       });
@@ -199,6 +209,15 @@ $(document).ready(function() {
   $(document).on('click', '.add-to-cart-btn', function() {
     const product_id = $(this).data('id');
     addToCart(product_id, 1);
+  });
+
+  // Chặn reload khi click vào phân trang, chỉ đổi hash
+  $(document).on('click', '.pagination a', function(e) {
+    const href = $(this).attr('href');
+    if (href && href.startsWith('#')) {
+      window.location.hash = href;
+      e.preventDefault();
+    }
   });
 });
 

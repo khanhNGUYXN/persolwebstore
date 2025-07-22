@@ -43,3 +43,27 @@ body { background: #f8f9fa; }
 .auth-box .small {
   color: #888;
 } 
+.card-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 5.5em;
+} 
+.carousel-indicators [data-bs-target] {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #222;
+  border: 2px solid #fff;
+  opacity: 0.7;
+  margin: 0 4px;
+  box-shadow: 0 0 2px #888;
+  transition: background 0.2s, border 0.2s;
+}
+.carousel-indicators .active {
+  background-color: #ffb300;
+  border: 2px solid #222;
+  opacity: 1;
+} 

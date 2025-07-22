@@ -9,24 +9,38 @@ $(document).ready(function() {
     $("#spa-content").removeClass("fade-in").addClass("fade-out");
     setTimeout(function() {
       $("#spa-content").removeClass("fade-out").addClass("fade-in");
-      switch(hash) {
-        case '#products': loadProducts(); break;
-        case '#cart': loadCart(); break;
-        case '#orders': loadOrders(); break;
-        case '#login': loadLogin(); break;
-        case '#register': loadRegister(); break;
-        case '#contact': loadContact(); break;
-        case '#logout': logout(); break;
-        default: loadHome(); break;
+      if (/^#products(?:-page-\d+)?$/.test(hash)) {
+        let match = hash.match(/^#products(?:-page-(\d+))?$/);
+        let page = match && match[1] ? parseInt(match[1]) : 1;
+        loadProducts(null, page);
+      } else if (/^#category-\d+(?:-page-\d+)?$/.test(hash)) {
+        let match = hash.match(/^#category-(\d+)(?:-page-(\d+))?$/);
+        let catId = match[1];
+        let page = match[2] ? parseInt(match[2]) : 1;
+        loadProducts(catId, page);
+      } else if (hash === '#cart') {
+        loadCart();
+      } else if (hash === '#orders') {
+        loadOrders();
+      } else if (hash === '#login') {
+        loadLogin();
+      } else if (hash === '#register') {
+        loadRegister();
+      } else if (hash === '#contact') {
+        loadContact();
+      } else if (hash === '#logout') {
+        logout();
+      } else {
+        loadHome();
       }
     }, 200);
   }
   function setActiveMenu(hash) {
     $("#main-menu .nav-link").removeClass("active");
-    if(hash === '#products') $('#menu-products').addClass('active');
-    else if(hash === '#cart') $('#menu-cart').addClass('active');
-    else if(hash === '#orders') $('#menu-orders').addClass('active');
-    else if(hash === '#contact') $('#menu-contact').addClass('active');
+    if (/^#products(?:-page-\d+)?$/.test(hash)) $('#menu-products').addClass('active');
+    else if (/^#category-\d+(?:-page-\d+)?$/.test(hash)) $('#menu-products').addClass('active');
+    else if (hash === '#cart') $('#menu-cart').addClass('active');
+    else if (hash === '#contact') $('#menu-contact').addClass('active');
     else $('#menu-home').addClass('active');
   }
   $(window).on('hashchange', function() {
