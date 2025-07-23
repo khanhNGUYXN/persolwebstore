@@ -22,6 +22,10 @@ $(document).ready(function() {
         loadCart();
       } else if (hash === '#orders') {
         loadOrders();
+      } else if (hash === '#profile') {
+        loadProfile();
+      } else if (hash === '#change-password') {
+        loadChangePassword();
       } else if (hash === '#login') {
         loadLogin();
       } else if (hash === '#register') {

@@ -9,6 +9,24 @@ if (!$user_id) {
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'delivery') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $stmt = $pdo->prepare('INSERT INTO delivery_info (user_id, recipient, address, city, phone, zipcode) VALUES (?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$user_id, $data['recipient'], $data['address'], $data['city'], $data['phone'], $data['zipcode']]);
+    $delivery_id = $pdo->lastInsertId();
+    echo json_encode(['delivery_id' => $delivery_id]);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'transaction') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $stmt = $pdo->prepare('INSERT INTO transaction_info (user_id, payment_method, content, dates) VALUES (?, ?, ?, NOW())');
+    $stmt->execute([$user_id, $data['payment_method'], '']);
+    $trans_id = $pdo->lastInsertId();
+    echo json_encode(['trans_id' => $trans_id]);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     $delivery_id = $data['delivery_id'] ?? null;
@@ -54,22 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'delivery') {
-    $data = json_decode(file_get_contents('php://input'), true);
-    $stmt = $pdo->prepare('INSERT INTO delivery_info (user_id, recipient, address, city, phone, zipcode) VALUES (?, ?, ?, ?, ?, ?)');
-    $stmt->execute([$user_id, $data['recipient'], $data['address'], $data['city'], $data['phone'], $data['zipcode']]);
-    $delivery_id = $pdo->lastInsertId();
-    echo json_encode(['delivery_id' => $delivery_id]);
-    exit;
-}
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'transaction') {
-    $data = json_decode(file_get_contents('php://input'), true);
-    $stmt = $pdo->prepare('INSERT INTO transaction_info (user_id, payment_method, content, dates) VALUES (?, ?, ?, NOW())');
-    $stmt->execute([$user_id, $data['payment_method'], '']);
-    $trans_id = $pdo->lastInsertId();
-    echo json_encode(['trans_id' => $trans_id]);
-    exit;
-}
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_GET['id'])) {
