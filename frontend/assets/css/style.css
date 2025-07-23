@@ -196,3 +196,121 @@ body { background: #f8f9fa; }
   .detail-title { font-size: 1.15rem; }
   .detail-card { padding: 0.5em; }
 } 
+.cart-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #222;
+}
+.cart-row {
+  margin-bottom: 2rem;
+}
+.cart-list-card {
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  background: #fff;
+}
+.cart-summary-card {
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  background: #fff;
+}
+.cart-table th, .cart-table td {
+  vertical-align: middle;
+}
+.cart-img {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  background: #fff;
+}
+.cart-price {
+  color: #ff5722;
+  font-weight: 600;
+  font-size: 1.08em;
+}
+.cart-total-label {
+  color: #888;
+  font-size: 1em;
+}
+.cart-total {
+  color: #ff5722;
+  font-size: 1.3em;
+  font-weight: 700;
+}
+@media (max-width: 991px) {
+  .cart-row { flex-direction: column; }
+  .cart-list-card, .cart-summary-card { margin-bottom: 1.5em; }
+} 
+
+/* Banner carousel for homepage */
+.home-banner-carousel {
+  width: 100%;
+  max-width: 1200px;
+  margin: 2rem auto 1.5rem auto;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+  height: 33vh;
+  min-height: 220px;
+  max-height: 340px;
+  background: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.home-banner-carousel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 18px;
+}
+@media (max-width: 768px) {
+  .home-banner-carousel {
+    height: 22vh;
+    min-height: 120px;
+    max-height: 180px;
+    border-radius: 10px;
+  }
+  .home-banner-carousel img {
+    border-radius: 10px;
+  }
+} 
+
+/* Footer multi-column modern style */
+.footer {
+  font-size: 0.98rem;
+  background: #f8f9fa;
+  border-top: 1px solid #e3e3e3;
+  margin-top: 3rem;
+}
+.footer h6 {
+  font-size: 1.08rem;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.7rem;
+  color: #222;
+}
+.footer ul li {
+  margin-bottom: 0.35rem;
+}
+.footer a.text-dark:hover {
+  color: #007bff !important;
+  text-decoration: underline;
+}
+.footer .bi {
+  vertical-align: middle;
+  font-size: 1.25em;
+  margin-right: 4px;
+}
+.footer .fs-4 { font-size: 1.5rem !important; }
+.footer .mb-2 img {
+  margin-top: 0.5rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+@media (max-width: 991px) {
+  .footer .row > div { margin-bottom: 1.5rem; }
+}
+@media (max-width: 767px) {
+  .footer .row { flex-direction: column; }
+  .footer .col-md-3 { width: 100%; max-width: 100%; }
+  .footer { padding-left: 0.5rem; padding-right: 0.5rem; }
+} 

@@ -5,14 +5,20 @@ function loadCart() {
     return;
   }
   $.get('http://localhost/persolwebstore/backend/api/cart.php?user_id=' + user.user_id, function(res) {
-    let html = '<h2>Giỏ hàng</h2>';
+    let html = '<h2 class="cart-title mb-4">Giỏ hàng của bạn</h2>';
     if (!res.cart || res.cart.length === 0) {
       html += '<div class="alert alert-info">Giỏ hàng trống.</div>';
       $('#spa-content').html(html);
       updateCartBadge();
       return;
     }
-    html += '<table class="table"><thead><tr><th>Ảnh</th><th>Sản phẩm</th><th>Giá</th><th>Số lượng</th><th></th></tr></thead><tbody>';
+    // Tính tổng tiền
+    let total = 0;
+    res.cart.forEach(item => { total += item.price * item.quantity; });
+    html += `<div class='row cart-row'>
+      <div class='col-lg-8 mb-3'>
+        <div class='card cart-list-card p-2'>
+          <table class="table align-middle cart-table mb-0"><thead><tr><th></th><th>Sản phẩm</th><th>Giá</th><th>Số lượng</th><th></th></tr></thead><tbody>`;
     res.cart.forEach(function(item) {
       let img = '';
       if (item.image_url) {
@@ -20,15 +26,23 @@ function loadCart() {
         img = matches && matches.length ? matches[0] : item.image_url;
       }
       html += `<tr>
-        <td><img src='${img}' width='60' onerror="this.onerror=null;this.src='https://via.placeholder.com/60x40?text=No+Image'"/></td>
+        <td><img src='${img}' width='60' class='rounded cart-img' onerror="this.onerror=null;this.src='https://via.placeholder.com/60x40?text=No+Image'"/></td>
         <td>${item.name}</td>
-        <td>${item.price.toLocaleString()} đ</td>
-        <td><input type='number' min='1' value='${item.quantity}' class='form-control form-control-sm cart-qty' data-id='${item.product_id}'></td>
-        <td><button class='btn btn-danger btn-sm cart-remove' data-id='${item.product_id}'>Xóa</button></td>
+        <td class='cart-price'>${item.price.toLocaleString()} ₫</td>
+        <td style='max-width:90px;'><input type='number' min='1' value='${item.quantity}' class='form-control form-control-sm cart-qty' data-id='${item.product_id}'></td>
+        <td><button class='btn btn-danger btn-sm cart-remove' data-id='${item.product_id}'><i class='bi bi-trash'></i></button></td>
       </tr>`;
     });
-    html += '</tbody></table>';
-    html += '<button class="btn btn-success" id="checkout-btn">Đặt hàng</button>';
+    html += '</tbody></table></div></div>';
+    // Cột phải: tổng tiền, nút đặt hàng
+    html += `<div class='col-lg-4 mb-3'>
+      <div class='card cart-summary-card p-4'>
+        <h5 class='mb-3'>Thông tin đơn hàng</h5>
+        <div class='cart-total-label mb-2'>Tổng tiền:</div>
+        <div class='cart-total mb-3'>${total.toLocaleString()} ₫</div>
+        <button class="btn btn-success w-100" id="checkout-btn"><i class='bi bi-credit-card me-1'></i>Đặt hàng</button>
+      </div>
+    </div></div>`;
     $('#spa-content').html(html);
     updateCartBadge();
   }, 'json');

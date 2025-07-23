@@ -92,7 +92,58 @@ function updateCartBadge() {
 
 // Dummy loader cho các section
 function loadHome() {
-  $('#spa-content').html('<h2>Chào mừng đến với Persol Webstore!</h2><p>Website kính mắt chính hãng: Ray-Ban, Oakley, Contact Lens, Sunglasses...</p>');
+  // Gọi API lấy banner
+  $.get('http://localhost/persolwebstore/backend/api/banner.php', function(res) {
+    let banners = res.banners || [];
+    let bannerHtml = '';
+    if (banners.length > 0) {
+      bannerHtml += '<div id="homeBannerCarousel" class="carousel slide home-banner-carousel" data-bs-ride="carousel">';
+      bannerHtml += '<div class="carousel-indicators">';
+      for (let i = 0; i < banners.length; i++) {
+        bannerHtml += `<button type="button" data-bs-target="#homeBannerCarousel" data-bs-slide-to="${i}"${i===0?' class="active" aria-current="true"':''} aria-label="Banner ${i+1}"></button>`;
+      }
+      bannerHtml += '</div>';
+      bannerHtml += '<div class="carousel-inner">';
+      for (let i = 0; i < banners.length; i++) {
+        let b = banners[i];
+        let imgUrl = b.image_url;
+        if (!/^https?:\/\//.test(imgUrl)) {
+          imgUrl = '/persolwebstore/' + imgUrl.replace(/^\/+/, '');
+        }
+        bannerHtml += `<div class="carousel-item${i===0?' active':''}">`;
+        if (b.link_url) {
+          bannerHtml += `<a href="${b.link_url}" target="_blank"><img src="${imgUrl}" class="d-block w-100" alt="Banner ${i+1}"></a>`;
+        } else {
+          bannerHtml += `<img src="${imgUrl}" class="d-block w-100" alt="Banner ${i+1}">`;
+        }
+        bannerHtml += '</div>';
+      }
+      bannerHtml += '</div>';
+      if (banners.length > 1) {
+        bannerHtml += '<button class="carousel-control-prev" type="button" data-bs-target="#homeBannerCarousel" data-bs-slide="prev">';
+        bannerHtml += '<span class="carousel-control-prev-icon" aria-hidden="true"></span>';
+        bannerHtml += '<span class="visually-hidden">Previous</span></button>';
+        bannerHtml += '<button class="carousel-control-next" type="button" data-bs-target="#homeBannerCarousel" data-bs-slide="next">';
+        bannerHtml += '<span class="carousel-control-next-icon" aria-hidden="true"></span>';
+        bannerHtml += '<span class="visually-hidden">Next</span></button>';
+      }
+      bannerHtml += '</div>';
+    }
+    // Mô tả hệ thống
+    let descHtml = `<section class="mt-4 mb-3 px-2 px-md-4">
+      <h2 class="fw-bold text-primary mb-2">Chào mừng đến với Persol Webstore!</h2>
+      <p class="lead mb-2">Hệ thống thương mại điện tử chuyên về kính mắt, tròng kính, gọng kính chính hãng.</p>
+      <ul class="mb-2">
+        <li>Đặt hàng trực tuyến, thanh toán nhanh chóng, giao hàng tận nơi</li>
+        <li>Quản lý sản phẩm, danh mục, giỏ hàng, đơn hàng, người dùng</li>
+        <li>Admin panel với phân quyền, quản lý banner, sản phẩm, danh mục, đơn hàng</li>
+        <li>Giao diện hiện đại, responsive, trải nghiệm mượt mà trên mọi thiết bị</li>
+        <li>SPA sử dụng HTML5, CSS3, Bootstrap 5, JavaScript, PHP, MySQL</li>
+      </ul>
+      <p class="text-muted small">Mọi thắc mắc vui lòng liên hệ bộ phận hỗ trợ của Persol.</p>
+    </section>`;
+    $('#spa-content').html(bannerHtml + descHtml);
+  }, 'json');
 }
 function loadProducts() {
   $('#spa-content').html('<h2>Danh sách sản phẩm</h2><div id="product-list"></div>');
