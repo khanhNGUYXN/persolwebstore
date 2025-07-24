@@ -1,0 +1,340 @@
+# PERSOL WEBSTORE - Q&A PREPARATION
+
+## 📋 TỔNG QUAN DỰ ÁN
+
+### Q1: Dự án này là gì?
+**A:** Persol Webstore là một website thương mại điện tử Single Page Application (SPA) chuyên bán kính mắt, gọng kính, tròng kính. Dự án được xây dựng như một bài tập lớn với đầy đủ chức năng từ frontend đến backend.
+
+### Q2: Các công nghệ sử dụng trong dự án?
+**A:** 
+- **Frontend:** HTML5, CSS3, Bootstrap 5, JavaScript, jQuery
+- **Backend:** PHP thuần (không dùng framework)
+- **Database:** MySQL
+- **Kiến trúc:** RESTful API, SPA (Single Page Application)
+- **Deployment:** XAMPP (localhost)
+
+### Q3: Tại sao chọn kiến trúc SPA?
+**A:** 
+- Trải nghiệm người dùng mượt mà, không reload trang
+- Tốc độ tải nhanh sau lần đầu
+- Dễ dàng quản lý state và routing
+- Phù hợp với yêu cầu bài tập về responsive design
+
+## 🏗️ KIẾN TRÚC HỆ THỐNG
+
+### Q4: Cấu trúc thư mục của dự án?
+**A:**
+```
+persolwebstore/
+├── frontend/           # Giao diện người dùng
+│   ├── assets/
+│   │   ├── css/       # Stylesheets
+│   │   ├── js/        # JavaScript modules
+│   │   └── images/    # Hình ảnh
+│   └── index.html     # Entry point
+├── backend/           # API Backend
+│   ├── api/          # RESTful APIs
+│   └── db/           # Database connection
+├── admin/            # Admin Panel
+│   ├── includes/     # Shared components
+│   └── *.php         # Admin pages
+├── database/         # SQL files
+└── uploads/          # Uploaded files
+```
+
+### Q5: Cách hoạt động của SPA routing?
+**A:** 
+- Sử dụng hash-based routing (#home, #products, #cart)
+- JavaScript intercepts hash changes
+- AJAX calls để load content động
+- Không reload trang, chỉ update content area
+
+### Q6: Cách xử lý state management?
+**A:**
+- localStorage để lưu user session
+- Server-side session cho admin
+- Client-side state cho cart, user preferences
+- Real-time sync giữa frontend và backend
+
+## 🗄️ DATABASE DESIGN
+
+### Q7: Cấu trúc database chính?
+**A:**
+- **users:** Thông tin người dùng (user_id, username, fullname, email, password, role)
+- **products:** Sản phẩm (product_id, name, brand, price, images, category_id)
+- **categories:** Danh mục sản phẩm (category_id, name, parent_id)
+- **cart:** Giỏ hàng (cart_id, user_id, product_id, quantity)
+- **orders:** Đơn hàng (order_id, user_id, total_amount, status, delivery_id, trans_id)
+- **order_items:** Chi tiết đơn hàng
+- **delivery_info:** Thông tin giao hàng
+- **transaction_info:** Thông tin thanh toán
+- **banner:** Banner trang chủ
+
+### Q8: Tại sao tách riêng delivery_info và transaction_info?
+**A:**
+- Tách biệt concerns: giao hàng vs thanh toán
+- Có thể tái sử dụng thông tin giao hàng
+- Dễ dàng mở rộng (nhiều địa chỉ, nhiều phương thức thanh toán)
+- Normalization database design
+
+## 🔐 AUTHENTICATION & AUTHORIZATION
+
+### Q9: Cách xử lý authentication?
+**A:**
+- SHA-256 password hashing (không dùng bcrypt vì yêu cầu bài tập)
+- JWT-like approach với localStorage
+- Session-based cho admin panel
+- Role-based access control (ADMIN/CUSTOMER)
+
+### Q10: Bảo mật như thế nào?
+**A:**
+- Password hashing với SHA-256
+- Input validation và sanitization
+- Prepared statements chống SQL injection
+- CORS headers cho API
+- Session timeout cho admin
+
+## 🛒 CHỨC NĂNG CHÍNH
+
+### Q11: Workflow đặt hàng như thế nào?
+**A:**
+1. User thêm sản phẩm vào giỏ hàng
+2. Vào giỏ hàng, click "Đặt hàng"
+3. Form tự động điền thông tin từ profile
+4. User xác nhận thông tin giao hàng và thanh toán
+5. Backend tạo delivery_info → transaction_info → order
+6. Xóa giỏ hàng, chuyển đến trang orders
+
+### Q12: Cách xử lý auto-fill form checkout?
+**A:**
+- Lấy thông tin từ localStorage trước
+- Nếu thiếu, gọi API lấy từ database
+- Có nút "Sử dụng thông tin từ profile" để điền lại
+- Real-time sync khi user cập nhật profile
+
+### Q13: Quản lý giỏ hàng như thế nào?
+**A:**
+- Lưu trong database với user_id
+- Real-time update số lượng sản phẩm
+- Badge hiển thị số lượng trên navbar
+- CRUD operations: thêm, sửa số lượng, xóa
+
+## 🎨 FRONTEND DESIGN
+
+### Q14: Responsive design được implement như thế nào?
+**A:**
+- Bootstrap 5 Grid System
+- Mobile-first approach
+- Custom CSS cho specific components
+- Flexible layouts với flexbox
+- Media queries cho breakpoints
+
+### Q15: Cách xử lý product images?
+**A:**
+- Hỗ trợ multiple images per product (JSON array)
+- Bootstrap Carousel với indicators
+- Fallback images khi load lỗi
+- Lazy loading cho performance
+- Image optimization và compression
+
+### Q16: User experience improvements?
+**A:**
+- Loading states và spinners
+- Success/error messages
+- Form validation real-time
+- Auto-complete và suggestions
+- Keyboard navigation support
+
+## 🔧 BACKEND API
+
+### Q17: RESTful API design?
+**A:**
+- GET /products - Lấy danh sách sản phẩm
+- GET /products/{id} - Chi tiết sản phẩm
+- POST /cart - Thêm vào giỏ hàng
+- POST /order - Tạo đơn hàng
+- PUT /user/profile - Cập nhật profile
+- DELETE /cart/{id} - Xóa khỏi giỏ hàng
+
+### Q18: Error handling trong API?
+**A:**
+- HTTP status codes chuẩn (200, 400, 401, 404, 500)
+- JSON response format
+- Detailed error messages
+- Validation errors
+- Database error handling
+
+### Q19: Pagination được implement như thế nào?
+**A:**
+- LIMIT/OFFSET trong SQL
+- Frontend pagination controls
+- URL hash routing (#products-page-2)
+- Dynamic content loading
+- SEO-friendly URLs
+
+## 👨‍💼 ADMIN PANEL
+
+### Q20: Admin panel có những chức năng gì?
+**A:**
+- **Dashboard:** Thống kê tổng quan
+- **Products:** CRUD sản phẩm, upload ảnh, phân loại
+- **Categories:** Quản lý danh mục (tree structure)
+- **Users:** Quản lý người dùng, toggle status
+- **Orders:** Xem đơn hàng, cập nhật trạng thái
+- **Banner:** Quản lý banner trang chủ
+
+### Q21: Cách xử lý file upload?
+**A:**
+- PHP file upload handling
+- Image validation (type, size)
+- Unique filename generation
+- Directory structure organization
+- Error handling và user feedback
+
+### Q22: Security cho admin panel?
+**A:**
+- Session-based authentication
+- Role-based access control
+- CSRF protection
+- Input sanitization
+- Secure file upload validation
+
+## 🚀 DEPLOYMENT & PERFORMANCE
+
+### Q23: Cách deploy dự án?
+**A:**
+- XAMPP local development
+- Apache web server
+- MySQL database
+- PHP configuration
+- File permissions setup
+
+### Q24: Performance optimizations?
+**A:**
+- Image compression và lazy loading
+- CSS/JS minification
+- Database indexing
+- Caching strategies
+- CDN cho static assets
+
+### Q25: Scalability considerations?
+**A:**
+- Modular code structure
+- Database normalization
+- API versioning
+- Caching layers
+- Load balancing ready
+
+## 🐛 DEBUGGING & TESTING
+
+### Q26: Cách debug khi có lỗi?
+**A:**
+- Browser Developer Tools
+- Console logging
+- Network tab monitoring
+- PHP error logging
+- Database query debugging
+
+### Q27: Testing strategies?
+**A:**
+- Manual testing các user flows
+- Cross-browser testing
+- Mobile responsiveness testing
+- API endpoint testing
+- Database integrity checks
+
+## 📈 FEATURES & INNOVATIONS
+
+### Q28: Tính năng nổi bật của dự án?
+**A:**
+- **Auto-fill checkout form** từ user profile
+- **Multi-level category dropdown** với hover effects
+- **Product image carousel** với indicators
+- **Real-time cart updates** với badge
+- **User profile management** với dropdown menu
+- **Banner management** với carousel
+- **CSV import** cho bulk product data
+
+### Q29: Cải tiến so với yêu cầu ban đầu?
+**A:**
+- Thêm admin panel hoàn chỉnh
+- User profile management
+- Auto-fill functionality
+- Enhanced UI/UX
+- Banner management system
+- Bulk data import
+- Advanced category management
+
+### Q30: Challenges và solutions?
+**A:**
+- **Challenge:** Hotlink protection cho product images
+  **Solution:** Local image upload và fallback images
+- **Challenge:** SPA routing với pagination
+  **Solution:** Hash-based routing với regex parsing
+- **Challenge:** Real-time data sync
+  **Solution:** localStorage + API calls
+- **Challenge:** Multi-level categories
+  **Solution:** Tree structure với recursive rendering
+
+## 🔮 FUTURE ENHANCEMENTS
+
+### Q31: Có thể mở rộng thêm gì?
+**A:**
+- Payment gateway integration
+- Email notifications
+- Advanced search và filters
+- Product reviews và ratings
+- Inventory management
+- Analytics dashboard
+- Mobile app development
+
+### Q32: Technical improvements?
+**A:**
+- Implement proper JWT authentication
+- Add API rate limiting
+- Database connection pooling
+- Implement caching (Redis)
+- Add unit tests
+- CI/CD pipeline
+- Docker containerization
+
+## 💡 LESSONS LEARNED
+
+### Q33: Bài học từ dự án này?
+**A:**
+- Importance of proper planning và architecture
+- User experience is crucial
+- Security should be built-in from start
+- Code organization và modularity
+- Testing early và often
+- Documentation is essential
+
+### Q34: Skills developed?
+**A:**
+- Full-stack development
+- Database design và optimization
+- API design và implementation
+- Frontend frameworks và libraries
+- Version control với Git
+- Problem-solving và debugging
+- Project management
+
+## 🎯 CONCLUSION
+
+### Q35: Tóm tắt dự án?
+**A:** Persol Webstore là một dự án thương mại điện tử hoàn chỉnh với đầy đủ chức năng từ frontend đến backend. Dự án thể hiện khả năng full-stack development, database design, và user experience optimization. Với kiến trúc SPA, RESTful APIs, và admin panel, dự án có thể scale và mở rộng trong tương lai.
+
+### Q36: Demo highlights?
+**A:**
+1. **User Registration/Login** với profile management
+2. **Product Browsing** với categories và pagination
+3. **Shopping Cart** với real-time updates
+4. **Checkout Process** với auto-fill functionality
+5. **Order Management** cho users và admin
+6. **Admin Panel** với full CRUD operations
+7. **Banner Management** với carousel display
+
+---
+*Prepared for: Project Defense/Interview*
+*Date: 2025*
+*Project: Persol Webstore - E-commerce SPA* 
