@@ -43,14 +43,59 @@ function extractImageUrls(image_url) {
 }
 
 // Hàm load danh sách sản phẩm (dùng backend nếu có)
-function loadProducts(category_id = null, page = 1) {
-  $('#spa-content').html('<h2>Danh sách sản phẩm</h2><div id="product-list">Đang tải...</div>');
+function loadProducts(category_id = null, page = 1, searchTerm = '') {
+  let searchHtml = `
+    <div class="row mb-4">
+      <div class="col-md-6 mx-auto">
+        <div class="input-group">
+          <input type="text" class="form-control" id="search-input" placeholder="Tìm kiếm sản phẩm theo tên..." value="${searchTerm}">
+          <button class="btn btn-primary" type="button" id="search-btn">
+            <i class="bi bi-search"></i> Tìm kiếm
+          </button>
+          <button class="btn btn-outline-secondary" type="button" id="clear-search-btn" ${searchTerm ? '' : 'style="display:none"'}>
+            <i class="bi bi-x-circle"></i> Xóa
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  $('#spa-content').html(`
+    <h2 class="mb-3">Danh sách sản phẩm</h2>
+    ${searchHtml}
+    <div id="product-list">Đang tải...</div>
+  `);
+  
+  // Xử lý sự kiện tìm kiếm
+  $('#search-btn').on('click', function() {
+    const term = $('#search-input').val().trim();
+    if (term) {
+      window.location.hash = `#search-${encodeURIComponent(term)}`;
+    }
+  });
+  
+  // Xử lý sự kiện nhấn Enter
+  $('#search-input').on('keypress', function(e) {
+    if (e.which === 13) {
+      $('#search-btn').click();
+    }
+  });
+  
+  // Xử lý sự kiện xóa tìm kiếm
+  $('#clear-search-btn').on('click', function() {
+    $('#search-input').val('');
+    window.location.hash = '#products';
+  });
   let url = 'http://localhost/persolwebstore/backend/api/products.php?page=' + page + '&limit=10';
   if (category_id) url += '&category_id=' + category_id;
+  if (searchTerm) url += '&search=' + encodeURIComponent(searchTerm);
   $.get(url, function(res) {
     let html = '<div class="row">';
     if (!res.products || res.products.length === 0) {
-      html += '<div class="col-12 text-center text-muted">Không có sản phẩm nào trong danh mục này.</div>';
+      let noResultsMsg = searchTerm ? 
+        `Không tìm thấy sản phẩm nào với từ khóa "${searchTerm}"` :
+        'Không có sản phẩm nào trong danh mục này';
+      html += `<div class="col-12 text-center text-muted"><i class="bi bi-search display-1"></i><p class="mt-3">${noResultsMsg}</p></div>`;
     } else {
       (res.products || []).forEach(function(p, idx) {
         let images = (Array.isArray(p.images) && p.images.length) ? p.images : extractImageUrls(p.image_url);
@@ -97,16 +142,30 @@ function loadProducts(category_id = null, page = 1) {
       let cur = res.page;
       let show = 2;
       let cat = category_id ? category_id : '';
+      let search = searchTerm ? encodeURIComponent(searchTerm) : '';
+      
       if (cur > 1) {
-        html += `<li class='page-item'><a class='page-link' href='#${cat?`category-${cat}`:'products'}-page-1'>&laquo;</a></li>`;
-        html += `<li class='page-item'><a class='page-link' href='#${cat?`category-${cat}`:'products'}-page-${cur-1}'>&lt;</a></li>`;
+        let firstUrl = search ? `#search-${search}-page-1` : 
+                      cat ? `#category-${cat}-page-1` : `#products-page-1`;
+        let prevUrl = search ? `#search-${search}-page-${cur-1}` : 
+                      cat ? `#category-${cat}-page-${cur-1}` : `#products-page-${cur-1}`;
+        html += `<li class='page-item'><a class='page-link' href='${firstUrl}'>&laquo;</a></li>`;
+        html += `<li class='page-item'><a class='page-link' href='${prevUrl}'>&lt;</a></li>`;
       }
+      
       for (let i = Math.max(1, cur - show); i <= Math.min(totalPages, cur + show); i++) {
-        html += `<li class='page-item${i==cur?' active':''}'><a class='page-link' href='#${cat?`category-${cat}`:'products'}-page-${i}'>${i}</a></li>`;
+        let pageUrl = search ? `#search-${search}-page-${i}` : 
+                     cat ? `#category-${cat}-page-${i}` : `#products-page-${i}`;
+        html += `<li class='page-item${i==cur?' active':''}'><a class='page-link' href='${pageUrl}'>${i}</a></li>`;
       }
+      
       if (cur < totalPages) {
-        html += `<li class='page-item'><a class='page-link' href='#${cat?`category-${cat}`:'products'}-page-${cur+1}'>&gt;</a></li>`;
-        html += `<li class='page-item'><a class='page-link' href='#${cat?`category-${cat}`:'products'}-page-${totalPages}'>&raquo;</a></li>`;
+        let nextUrl = search ? `#search-${search}-page-${cur+1}` : 
+                     cat ? `#category-${cat}-page-${cur+1}` : `#products-page-${cur+1}`;
+        let lastUrl = search ? `#search-${search}-page-${totalPages}` : 
+                     cat ? `#category-${cat}-page-${totalPages}` : `#products-page-${totalPages}`;
+        html += `<li class='page-item'><a class='page-link' href='${nextUrl}'>&gt;</a></li>`;
+        html += `<li class='page-item'><a class='page-link' href='${lastUrl}'>&raquo;</a></li>`;
       }
       html += '</ul></nav>';
     }
@@ -300,6 +359,8 @@ $(window).on('hashchange', function() {
   let hash = location.hash;
   let catMatch = hash.match(/^#category-(\d+)(?:-page-(\d+))?$/);
   let prodMatch = hash.match(/^#products(?:-page-(\d+))?$/);
+  let searchMatch = hash.match(/^#search-([^-]+)(?:-page-(\d+))?$/);
+  
   if (catMatch) {
     const catId = catMatch[1];
     const page = catMatch[2] ? parseInt(catMatch[2]) : 1;
@@ -307,6 +368,10 @@ $(window).on('hashchange', function() {
   } else if (prodMatch) {
     const page = prodMatch[1] ? parseInt(prodMatch[1]) : 1;
     loadProducts(null, page);
+  } else if (searchMatch) {
+    const searchTerm = decodeURIComponent(searchMatch[1]);
+    const page = searchMatch[2] ? parseInt(searchMatch[2]) : 1;
+    loadProducts(null, page, searchTerm);
   }
 });
 // Khi vào trang lần đầu
@@ -314,6 +379,8 @@ $(window).on('hashchange', function() {
   let hash = location.hash;
   let catMatch = hash.match(/^#category-(\d+)(?:-page-(\d+))?$/);
   let prodMatch = hash.match(/^#products(?:-page-(\d+))?$/);
+  let searchMatch = hash.match(/^#search-([^-]+)(?:-page-(\d+))?$/);
+  
   if (catMatch) {
     const catId = catMatch[1];
     const page = catMatch[2] ? parseInt(catMatch[2]) : 1;
@@ -321,6 +388,10 @@ $(window).on('hashchange', function() {
   } else if (prodMatch) {
     const page = prodMatch[1] ? parseInt(prodMatch[1]) : 1;
     loadProducts(null, page);
+  } else if (searchMatch) {
+    const searchTerm = decodeURIComponent(searchMatch[1]);
+    const page = searchMatch[2] ? parseInt(searchMatch[2]) : 1;
+    loadProducts(null, page, searchTerm);
   } else {
     loadProducts();
   }
