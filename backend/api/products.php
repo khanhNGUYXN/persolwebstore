@@ -26,8 +26,21 @@ if (isset($_GET['id'])) {
 
 $where = '';
 $params = [];
+
+// Xử lý tìm kiếm
+if (isset($_GET['search']) && !empty($_GET['search'])) {
+    $search = '%' . $_GET['search'] . '%';
+    $where = 'WHERE product_name LIKE ?';
+    $params[] = $search;
+}
+
+// Xử lý filter theo category
 if (isset($_GET['category_id'])) {
-    $where = 'WHERE category_id = ?';
+    if ($where) {
+        $where .= ' AND category_id = ?';
+    } else {
+        $where = 'WHERE category_id = ?';
+    }
     $params[] = $_GET['category_id'];
 }
 
@@ -56,4 +69,13 @@ foreach ($products as &$product) {
         $product['images'] = [];
     }
 }
-echo json_encode(['products' => $products, 'total' => $total, 'page' => $page, 'limit' => $limit]); 
+$total_pages = ceil($total / $limit);
+
+echo json_encode([
+    'success' => true,
+    'products' => $products, 
+    'total' => $total, 
+    'total_pages' => $total_pages,
+    'page' => $page, 
+    'limit' => $limit
+]); 
