@@ -52,24 +52,93 @@ function loadCheckout() {
     $('#spa-content').html('<div class="alert alert-warning">Vui lòng đăng nhập để đặt hàng.</div>');
     return;
   }
-  // Đơn giản: chỉ nhập thông tin giao hàng và thanh toán
+  
+  // Lấy thông tin profile từ localStorage hoặc từ server
+  let profileData = {
+    recipient: user.fullname || '',
+    address: user.address || '',
+    city: user.city || '',
+    phone: user.phone || '',
+    zipcode: user.zipcode || ''
+  };
+  
+  // Nếu không có đủ thông tin trong localStorage, lấy từ server
+  if (!profileData.address || !profileData.city) {
+    $.get('http://localhost/persolwebstore/backend/api/user.php?user_id=' + user.user_id + '&action=profile', function(res) {
+      if (res.user) {
+        profileData = {
+          recipient: res.user.fullname || user.fullname || '',
+          address: res.user.address || '',
+          city: res.user.city || '',
+          phone: res.user.phone || '',
+          zipcode: res.user.zipcode || ''
+        };
+        renderCheckoutForm(profileData);
+      } else {
+        renderCheckoutForm(profileData);
+      }
+    }, 'json').fail(function() {
+      renderCheckoutForm(profileData);
+    });
+  } else {
+    renderCheckoutForm(profileData);
+  }
+}
+
+function renderCheckoutForm(profileData) {
   $('#spa-content').html(`
-    <h2>Đặt hàng</h2>
-    <form id="checkout-form">
-      <div class="mb-3"><label>Người nhận</label><input type="text" class="form-control" name="recipient" required></div>
-      <div class="mb-3"><label>Địa chỉ</label><input type="text" class="form-control" name="address" required></div>
-      <div class="mb-3"><label>Thành phố</label><input type="text" class="form-control" name="city" required></div>
-      <div class="mb-3"><label>Điện thoại</label><input type="text" class="form-control" name="phone" required></div>
-      <div class="mb-3"><label>Mã bưu điện</label><input type="text" class="form-control" name="zipcode" required></div>
-      <div class="mb-3"><label>Phương thức thanh toán</label>
-        <select class="form-control" name="payment_method">
-          <option value="COD">Thanh toán khi nhận hàng</option>
-          <option value="BANK">Chuyển khoản</option>
-        </select>
+    <div class="card">
+      <div class="card-header">
+        <h2 class="mb-0"><i class="bi bi-cart-check me-2"></i>Đặt hàng</h2>
       </div>
-      <button class="btn btn-success" type="submit">Xác nhận đặt hàng</button>
-    </form>
-    <div id="checkout-msg" class="mt-2 text-danger"></div>
+      <div class="card-body">
+        <form id="checkout-form">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Người nhận <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="recipient" value="${profileData.recipient}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Điện thoại <span class="text-danger">*</span></label>
+              <input type="tel" class="form-control" name="phone" value="${profileData.phone}" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Địa chỉ <span class="text-danger">*</span></label>
+            <textarea class="form-control" name="address" rows="2" required>${profileData.address}</textarea>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Thành phố <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="city" value="${profileData.city}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Mã bưu điện <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="zipcode" value="${profileData.zipcode}" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Phương thức thanh toán <span class="text-danger">*</span></label>
+            <select class="form-control" name="payment_method" required>
+              <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+              <option value="BANK">Chuyển khoản ngân hàng</option>
+            </select>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-success" type="submit">
+              <i class="bi bi-check-circle me-1"></i>Xác nhận đặt hàng
+            </button>
+            <button type="button" class="btn btn-outline-primary" id="btn-use-profile">
+              <i class="bi bi-person-check me-1"></i>Sử dụng thông tin từ profile
+            </button>
+            <a href="#cart" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left me-1"></i>Quay lại giỏ hàng
+            </a>
+          </div>
+        </form>
+        <div id="checkout-msg" class="mt-3"></div>
+      </div>
+    </div>
   `);
 }
 
@@ -136,5 +205,36 @@ $(document).on('submit', '#checkout-form', function(e) {
     error: function(xhr) {
       $('#checkout-msg').text(xhr.responseJSON?.error || 'Lỗi thông tin giao hàng');
     }
+  });
+});
+
+// Xử lý nút "Sử dụng thông tin từ profile"
+$(document).on('click', '#btn-use-profile', function() {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!user || !user.user_id) {
+    alert('Vui lòng đăng nhập!');
+    return;
+  }
+  
+  // Lấy thông tin profile từ server
+  $.get('http://localhost/persolwebstore/backend/api/user.php?user_id=' + user.user_id + '&action=profile', function(res) {
+    if (res.user) {
+      // Điền thông tin vào form
+      $('#checkout-form input[name="recipient"]').val(res.user.fullname || user.fullname || '');
+      $('#checkout-form input[name="phone"]').val(res.user.phone || '');
+      $('#checkout-form textarea[name="address"]').val(res.user.address || '');
+      $('#checkout-form input[name="city"]').val(res.user.city || '');
+      $('#checkout-form input[name="zipcode"]').val(res.user.zipcode || '');
+      
+      // Hiển thị thông báo
+      $('#checkout-msg').removeClass('text-danger').addClass('text-success').text('Đã điền thông tin từ profile!');
+      setTimeout(() => {
+        $('#checkout-msg').text('');
+      }, 2000);
+    } else {
+      $('#checkout-msg').removeClass('text-success').addClass('text-danger').text('Không thể lấy thông tin profile!');
+    }
+  }, 'json').fail(function() {
+    $('#checkout-msg').removeClass('text-success').addClass('text-danger').text('Lỗi khi lấy thông tin profile!');
   });
 }); 
