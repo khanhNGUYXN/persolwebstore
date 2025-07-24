@@ -90,6 +90,7 @@ function loadProducts(category_id = null, page = 1, searchTerm = '') {
   if (category_id) url += '&category_id=' + category_id;
   if (searchTerm) url += '&search=' + encodeURIComponent(searchTerm);
   $.get(url, function(res) {
+    console.log('API Response:', res); // Debug log
     let html = '<div class="row">';
     if (!res.products || res.products.length === 0) {
       let noResultsMsg = searchTerm ? 
@@ -170,7 +171,10 @@ function loadProducts(category_id = null, page = 1, searchTerm = '') {
       html += '</ul></nav>';
     }
     $('#product-list').html(html);
-  }, 'json');
+  }, 'json').fail(function(xhr, status, error) {
+    console.error('API Error:', xhr.responseText);
+    $('#product-list').html('<div class="alert alert-danger">Có lỗi xảy ra khi tải danh sách sản phẩm: ' + error + '</div>');
+  });
 }
 
 // Hàm hiển thị chi tiết sản phẩm (dùng backend)

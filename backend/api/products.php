@@ -30,7 +30,7 @@ $params = [];
 // Xử lý tìm kiếm
 if (isset($_GET['search']) && !empty($_GET['search'])) {
     $search = '%' . $_GET['search'] . '%';
-    $where = 'WHERE product_name LIKE ?';
+    $where = 'WHERE name LIKE ?';
     $params[] = $search;
 }
 
