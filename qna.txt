@@ -150,6 +150,8 @@ persolwebstore/
 ### Q17: RESTful API design?
 **A:**
 - GET /products - Lấy danh sách sản phẩm
+- GET /products?search=term - Tìm kiếm sản phẩm theo tên
+- GET /products?category_id=1 - Lọc theo danh mục
 - GET /products/{id} - Chi tiết sản phẩm
 - POST /cart - Thêm vào giỏ hàng
 - POST /order - Tạo đơn hàng
@@ -171,6 +173,15 @@ persolwebstore/
 - URL hash routing (#products-page-2)
 - Dynamic content loading
 - SEO-friendly URLs
+
+### Q19.1: Product Search functionality được implement như thế nào?
+**A:**
+- **Frontend:** Search input với real-time validation
+- **Backend:** SQL LIKE query với wildcard matching
+- **URL Routing:** Hash-based search URLs (#search-term)
+- **Pagination:** Search results với 10 sản phẩm/trang
+- **User Experience:** Clear search button, Enter key support
+- **Error Handling:** No results message với search term display
 
 ## 👨‍💼 ADMIN PANEL
 
@@ -254,6 +265,7 @@ persolwebstore/
 - **User profile management** với dropdown menu
 - **Banner management** với carousel
 - **CSV import** cho bulk product data
+- **Product search functionality** với pagination và URL routing
 
 ### Q29: Cải tiến so với yêu cầu ban đầu?
 **A:**
@@ -264,6 +276,9 @@ persolwebstore/
 - Banner management system
 - Bulk data import
 - Advanced category management
+- Product search với real-time filtering
+- URL-friendly search routing (#search-term)
+- Pagination cho search results
 
 ### Q30: Challenges và solutions?
 **A:**
@@ -275,6 +290,10 @@ persolwebstore/
   **Solution:** localStorage + API calls
 - **Challenge:** Multi-level categories
   **Solution:** Tree structure với recursive rendering
+- **Challenge:** Product search với pagination
+  **Solution:** API search với LIKE query + frontend pagination controls
+- **Challenge:** Function override trong JavaScript
+  **Solution:** Migrate search logic từ app.js sang product.js
 
 ## 🔮 FUTURE ENHANCEMENTS
 
@@ -282,11 +301,14 @@ persolwebstore/
 **A:**
 - Payment gateway integration
 - Email notifications
-- Advanced search và filters
+- Advanced search và filters (đã implement basic search)
 - Product reviews và ratings
 - Inventory management
 - Analytics dashboard
 - Mobile app development
+- Search suggestions và autocomplete
+- Search history và trending searches
+- Advanced filtering (price range, brand, category)
 
 ### Q32: Technical improvements?
 **A:**
@@ -328,11 +350,12 @@ persolwebstore/
 **A:**
 1. **User Registration/Login** với profile management
 2. **Product Browsing** với categories và pagination
-3. **Shopping Cart** với real-time updates
-4. **Checkout Process** với auto-fill functionality
-5. **Order Management** cho users và admin
-6. **Admin Panel** với full CRUD operations
-7. **Banner Management** với carousel display
+3. **Product Search** với real-time filtering và pagination
+4. **Shopping Cart** với real-time updates
+5. **Checkout Process** với auto-fill functionality
+6. **Order Management** cho users và admin
+7. **Admin Panel** với full CRUD operations
+8. **Banner Management** với carousel display
 
 ---
 *Prepared for: Project Defense/Interview*
