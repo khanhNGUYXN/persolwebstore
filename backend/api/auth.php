@@ -54,6 +54,11 @@ if ($method === 'POST' && isset($_GET['action']) && $_GET['action'] === 'login')
     $stmt->execute([$login, $login]);
     $user = $stmt->fetch();
     if ($user && hash('sha256', $password) === $user['password']) {
+        if ($user['status'] !== 'ACTIVE') {
+            http_response_code(403);
+            echo json_encode(['error' => 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.']);
+            exit;
+        }
         echo json_encode([
             'success' => true,
             'user_id' => $user['user_id'],

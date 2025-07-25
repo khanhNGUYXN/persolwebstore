@@ -64,21 +64,21 @@ $(document).ready(function() {
   showSection(location.hash);
 
   // Ticker ngày giờ
-  setInterval(function() {
-    const now = new Date();
-    $('#ticker').text(now.toLocaleString('vi-VN'));
-  }, 1000);
+  // setInterval(function() {
+  //   const now = new Date();
+  //   $('#ticker').text(now.toLocaleString('vi-VN'));
+  // }, 1000);
 
-  // Lấy vị trí
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(function(pos) {
-      $('#location').text('Vị trí: ' + pos.coords.latitude.toFixed(3) + ',' + pos.coords.longitude.toFixed(3));
-    }, function() {
-      $('#location').text('Không lấy được vị trí');
-    });
-  } else {
-    $('#location').text('Trình duyệt không hỗ trợ định vị');
-  }
+  // // Lấy vị trí
+  // if (navigator.geolocation) {
+  //   navigator.geolocation.getCurrentPosition(function(pos) {
+  //     $('#location').text('Vị trí: ' + pos.coords.latitude.toFixed(3) + ',' + pos.coords.longitude.toFixed(3));
+  //   }, function() {
+  //     $('#location').text('Không lấy được vị trí');
+  //   });
+  // } else {
+  //   $('#location').text('Trình duyệt không hỗ trợ định vị');
+  // }
 
   // Xóa code lấy counter
   // $.get('http://localhost/backend/api/counter.php', function(data) {

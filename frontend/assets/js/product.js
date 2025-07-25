@@ -170,7 +170,7 @@ function loadProducts(category_id = null, page = 1, searchTerm = '', priceMin = 
           <div class='card product-card w-100 h-100 d-flex flex-column'>
             ${carousel}
             <div class='card-body d-flex flex-column'>
-              <h5 class='card-title'>${p.name}</h5>
+        <h5 class='card-title'>${p.name}</h5>
               <div class='product-price mb-2'>${p.price ? (p.price.toLocaleString('vi-VN') + '₫') : ''}</div>
               <p class='card-text flex-grow-1'>${p.description || ''}</p>
               <div class='mt-auto d-flex'>
