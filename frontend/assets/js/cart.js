@@ -22,8 +22,8 @@ function loadCart() {
     res.cart.forEach(function(item) {
       let img = '';
       if (item.image_url) {
-        let matches = item.image_url.match(/https?:\/\/[^,\]\"]+/g);
-        img = matches && matches.length ? matches[0] : item.image_url;
+        let images = extractImageUrls(item.image_url);
+        img = images.length ? normalizeImageUrl(images[0]) : '';
       }
       html += `<tr>
         <td><img src='${img}' width='60' class='rounded cart-img' onerror="this.onerror=null;this.src='https://via.placeholder.com/60x40?text=No+Image'"/></td>
@@ -95,4 +95,25 @@ function addToCart(product_id, quantity = 1) {
       updateCartBadge();
     }
   });
+}
+
+// Thêm lại các hàm extractImageUrls và normalizeImageUrl giống product.js
+function extractImageUrls(image_url) {
+  if (!image_url) return [];
+  try {
+    let arr = JSON.parse(image_url);
+    if (Array.isArray(arr)) return arr;
+  } catch (e) {}
+  let matches = image_url.match(/https?:\/\/[^\s,\]"']+/g);
+  if (matches) return matches;
+  if (image_url.trim().startsWith('http')) return [image_url.trim()];
+  return [];
+}
+function normalizeImageUrl(img) {
+  if (!/^https?:\/\//.test(img)) {
+    // Nếu đã có prefix persolwebstore thì không thêm nữa
+    if (img.startsWith('persolwebstore/')) return '/' + img.replace(/^\/+/, '');
+    return '/persolwebstore/' + img.replace(/^\/+/, '');
+  }
+  return img;
 } 

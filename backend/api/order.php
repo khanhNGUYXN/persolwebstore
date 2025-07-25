@@ -86,9 +86,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             echo json_encode(['error' => 'Order not found']);
             exit;
         }
-        $stmt = $pdo->prepare('SELECT oi.*, p.name, p.image_url FROM order_items oi JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id = ?');
+        $stmt = $pdo->prepare('SELECT oi.*, p.name, p.image_url, p.images FROM order_items oi JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id = ?');
         $stmt->execute([$order_id]);
         $items = $stmt->fetchAll();
+        // Ưu tiên images nếu image_url rỗng hoặc không hợp lệ
+        foreach ($items as &$item) {
+            if ((empty($item['image_url']) || $item['image_url'] === '[]') && !empty($item['images'])) {
+                $item['image_url'] = $item['images'];
+            }
+        }
         echo json_encode(['order' => $order, 'items' => $items]);
         exit;
     } else {

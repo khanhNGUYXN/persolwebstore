@@ -11,14 +11,21 @@ if (!$user_id) {
 
 switch ($_SERVER['REQUEST_METHOD']) {
     case 'GET':
-        $stmt = $pdo->prepare('SELECT c.cart_id, c.product_id, c.quantity, p.name, p.price, p.image_url FROM cart c JOIN products p ON c.product_id = p.product_id WHERE c.user_id = ?');
+        $stmt = $pdo->prepare('SELECT c.cart_id, c.product_id, c.quantity, p.name, p.price, p.image_url, p.images FROM cart c JOIN products p ON c.product_id = p.product_id WHERE c.user_id = ?');
         $stmt->execute([$user_id]);
-        echo json_encode(['cart' => $stmt->fetchAll()]);
+        $cart = $stmt->fetchAll();
+        // Ưu tiên images nếu image_url rỗng hoặc không hợp lệ
+        foreach ($cart as &$item) {
+            if ((empty($item['image_url']) || $item['image_url'] === '[]') && !empty($item['images'])) {
+                $item['image_url'] = $item['images'];
+            }
+        }
+        echo json_encode(['cart' => $cart]);
         break;
     case 'POST':
         $data = json_decode(file_get_contents('php://input'), true);
         $product_id = $data['product_id'] ?? null;
-        $quantity = $data['quantity'] ?? 1;
+        $quantity = isset($data['quantity']) ? max(1, intval($data['quantity'])) : 1;
         if (!$product_id) {
             http_response_code(400);
             echo json_encode(['error' => 'Missing product_id']);

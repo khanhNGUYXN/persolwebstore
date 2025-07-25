@@ -34,8 +34,13 @@ $(document).on('click', '.order-detail', function() {
     html += `<div>Ngày: ${res.order.order_date} | Tổng tiền: ${res.order.total_amount.toLocaleString()} đ | Trạng thái: ${res.order.status}</div>`;
     html += '<table class="table"><thead><tr><th>Sản phẩm</th><th>Giá</th><th>Số lượng</th></tr></thead><tbody>';
     res.items.forEach(function(item) {
+      let img = '';
+      if (item.image_url) {
+        let images = extractImageUrls(item.image_url);
+        img = images.length ? normalizeImageUrl(images[0]) : '';
+      }
       html += `<tr>
-        <td><img src='${item.image_url}' width='60'> ${item.name}</td>
+        <td><img src='${img}' width='60' onerror="this.onerror=null;this.src='https://via.placeholder.com/60x40?text=No+Image'"> ${item.name}</td>
         <td>${item.price.toLocaleString()} đ</td>
         <td>${item.quantity}</td>
       </tr>`;
@@ -245,3 +250,23 @@ $(document).on('input change', 'input[type="number"][name="quantity"], #detail-q
   if (v < 1) v = 1;
   $(this).val(v);
 }); 
+
+// Thêm lại các hàm extractImageUrls và normalizeImageUrl giống cart.js/product.js
+function extractImageUrls(image_url) {
+  if (!image_url) return [];
+  try {
+    let arr = JSON.parse(image_url);
+    if (Array.isArray(arr)) return arr;
+  } catch (e) {}
+  let matches = image_url.match(/https?:\/\/[^\s,\]"']+/g);
+  if (matches) return matches;
+  if (image_url.trim().startsWith('http')) return [image_url.trim()];
+  return [];
+}
+function normalizeImageUrl(img) {
+  if (!/^https?:\/\//.test(img)) {
+    if (img.startsWith('persolwebstore/')) return '/' + img.replace(/^\/+/, '');
+    return '/persolwebstore/' + img.replace(/^\/+/, '');
+  }
+  return img;
+} 
