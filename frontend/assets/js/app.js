@@ -18,10 +18,10 @@ $(document).ready(function() {
         let catId = match[1];
         let page = match[2] ? parseInt(match[2]) : 1;
         loadProducts(catId, page);
-      } else if (/^#search-[^-]+(?:-page-\d+)?$/.test(hash)) {
-        let match = hash.match(/^#search-([^-]+)(?:-page-(\d+))?$/);
-        let searchTerm = decodeURIComponent(match[1]);
-        let page = match[2] ? parseInt(match[2]) : 1;
+      } else if (/^#search-.+/.test(hash)) {
+        let match = hash.match(/^#search-(.+?)(?:-page-(\d+))?$/);
+        let searchTerm = match && match[1] ? decodeURIComponent(match[1]) : '';
+        let page = match && match[2] ? parseInt(match[2]) : 1;
         loadProducts(null, page, searchTerm);
       } else if (hash === '#cart') {
         loadCart();
@@ -39,6 +39,8 @@ $(document).ready(function() {
         loadContact();
       } else if (hash === '#logout') {
         logout();
+      } else if (hash === '#compare') {
+        loadCompare();
       } else {
         loadHome();
       }
@@ -51,6 +53,7 @@ $(document).ready(function() {
     else if (/^#search-[^-]+(?:-page-\d+)?$/.test(hash)) $('#menu-products').addClass('active');
     else if (hash === '#cart') $('#menu-cart').addClass('active');
     else if (hash === '#contact') $('#menu-contact').addClass('active');
+    else if (hash === '#compare') $('#menu-compare').addClass('active');
     else $('#menu-home').addClass('active');
   }
   $(window).on('hashchange', function() {
@@ -77,11 +80,97 @@ $(document).ready(function() {
     $('#location').text('Trình duyệt không hỗ trợ định vị');
   }
 
-  // Lấy counter
-  $.get('http://localhost/backend/api/counter.php', function(data) {
-    $('#counter').text(data.count || data);
+  // Xóa code lấy counter
+  // $.get('http://localhost/backend/api/counter.php', function(data) {
+  //   $('#counter').text(data.count || data);
+  // });
+});
+
+// Floating Chat Support Button & Box
+$(document).ready(function() {
+  // Chat support toggle
+  $('#chat-support-btn').on('click', function() {
+    $('#chat-support-box').fadeIn(200);
+    setTimeout(function() {
+      $('#chat-support-input').focus();
+    }, 250);
+  });
+  $('#chat-support-close').on('click', function() {
+    $('#chat-support-box').fadeOut(200);
+  });
+
+  // Auto expand textarea
+  $('#chat-support-input').on('input', function() {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+  });
+
+  // Gửi tin nhắn chat
+  $('#chat-support-form').on('submit', function(e) {
+    e.preventDefault();
+    const msg = $('#chat-support-input').val().trim();
+    if (!msg) return;
+    // Nhận diện brand ở frontend
+    const brands = ['Ray-Ban', 'Dolce', 'Gucci', 'Tom Ford', 'Versace', 'Prada', 'Burberry', 'Chanel', 'Armani', 'Smith', 'Bebe', 'Dragon', 'Converse', 'DKNY', 'Furla', 'Tory Burch', 'Michael Kors', 'Oakley', 'Vogue', 'Costa', 'Modo', 'Emporio Armani', 'Ralph Lauren', 'Lulu Guinness', 'Zeal', 'Badgley', 'Flexon', 'Chopard', 'Swarovski', 'Guess', 'XXL', 'Easyclip', 'Marc Jacobs', 'Skechers', 'Nike', 'Chesterfield', 'Liz Claiborne', 'Kate Spade', 'Via Spiga'];
+    let foundBrand = null;
+    for (let b of brands) {
+      const regex = new RegExp(b.replace(/[-\s]/g, '[ -]?'), 'i');
+      if (regex.test(msg) && /(tìm|có|liệt kê|show|xem|sản phẩm|kính|glasses)/i.test(msg)) {
+        foundBrand = b;
+        break;
+      }
+    }
+    if (foundBrand) {
+      window.location.hash = '#search-' + encodeURIComponent(foundBrand);
+      $('#chat-support-box').fadeOut(200);
+      $('#chat-support-messages').append('<div class="mb-2 text-end"><span class="badge bg-primary">Bạn</span> <span>' + escapeHtml(msg) + '</span></div>');
+      $('#chat-support-messages').append('<div class="mb-2"><span class="badge bg-secondary">AI</span> <span>Đã chuyển đến sản phẩm ' + foundBrand + '.</span></div>');
+      $('#chat-support-messages').scrollTop($('#chat-support-messages')[0].scrollHeight);
+      $('#chat-support-input').val('').trigger('input');
+      return;
+    }
+    // Nếu không nhận diện được brand, fallback gọi Gemini như cũ
+    $('#chat-support-messages').append('<div class="mb-2 text-end"><span class="badge bg-primary">Bạn</span> <span>' + escapeHtml(msg) + '</span></div>');
+    $('#chat-support-input').val('').trigger('input');
+    $('#chat-support-messages').append('<div class="mb-2"><span class="badge bg-secondary">AI</span> <span class="text-muted">Đang trả lời...</span></div>');
+    $('#chat-support-messages').scrollTop($('#chat-support-messages')[0].scrollHeight);
+    $.ajax({
+      url: 'http://localhost/persolwebstore/backend/api/gemini_chat.php',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({ message: msg }),
+      success: function(res) {
+        $('#chat-support-messages .text-muted').last().parent().remove();
+        if (res.redirectBrand) {
+          window.location.hash = '#search-' + encodeURIComponent(res.redirectBrand);
+          $('#chat-support-box').fadeOut(200);
+          $('#chat-support-messages').append('<div class="mb-2"><span class="badge bg-secondary">AI</span> <span>Đã chuyển đến sản phẩm ' + res.redirectBrand + '.</span></div>');
+          $('#chat-support-messages').scrollTop($('#chat-support-messages')[0].scrollHeight);
+          return;
+        }
+        let aiMsg = res.candidates && res.candidates[0] && res.candidates[0].content && res.candidates[0].content.parts ? res.candidates[0].content.parts[0].text : (res.text || '[Không có phản hồi]');
+        if (typeof marked !== 'undefined') {
+          $('#chat-support-messages').append('<div class="mb-2"><span class="badge bg-secondary">AI</span> <span class="chat-ai-msg">' + marked.parse(aiMsg) + '</span></div>');
+        } else {
+          $('#chat-support-messages').append('<div class="mb-2"><span class="badge bg-secondary">AI</span> <span>' + escapeHtml(aiMsg) + '</span></div>');
+        }
+        $('#chat-support-messages').scrollTop($('#chat-support-messages')[0].scrollHeight);
+      },
+      error: function(xhr) {
+        $('#chat-support-messages .text-muted').last().parent().remove();
+        $('#chat-support-messages').append('<div class="mb-2"><span class="badge bg-secondary">AI</span> <span class="text-danger">Lỗi kết nối hoặc API</span></div>');
+        $('#chat-support-messages').scrollTop($('#chat-support-messages')[0].scrollHeight);
+      }
+    });
   });
 });
+
+// Escape HTML helper
+function escapeHtml(text) {
+  return text.replace(/[&<>"']/g, function(m) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'})[m];
+  });
+}
 
 // Hàm cập nhật badge giỏ hàng
 function updateCartBadge() {
@@ -143,13 +232,6 @@ function loadHome() {
     let descHtml = `<section class="mt-4 mb-3 px-2 px-md-4">
       <h2 class="fw-bold text-primary mb-2">Chào mừng đến với Persol Webstore!</h2>
       <p class="lead mb-2">Hệ thống thương mại điện tử chuyên về kính mắt, tròng kính, gọng kính chính hãng.</p>
-      <ul class="mb-2">
-        <li>Đặt hàng trực tuyến, thanh toán nhanh chóng, giao hàng tận nơi</li>
-        <li>Quản lý sản phẩm, danh mục, giỏ hàng, đơn hàng, người dùng</li>
-        <li>Admin panel với phân quyền, quản lý banner, sản phẩm, danh mục, đơn hàng</li>
-        <li>Giao diện hiện đại, responsive, trải nghiệm mượt mà trên mọi thiết bị</li>
-        <li>SPA sử dụng HTML5, CSS3, Bootstrap 5, JavaScript, PHP, MySQL</li>
-      </ul>
       <p class="text-muted small">Mọi thắc mắc vui lòng liên hệ bộ phận hỗ trợ của Persol.</p>
     </section>`;
     $('#spa-content').html(bannerHtml + descHtml);
@@ -353,8 +435,100 @@ function addToCart(productId) {
 }
 
 function loadCompare() {
-  $('#spa-content').html('<h2>So sánh sản phẩm</h2><div id="compare-list"></div>');
+  $('#spa-content').html(`
+    <h2 class="mb-3">So sánh sản phẩm</h2>
+    <div class="mb-3">
+      <input type="text" id="compare-search" class="form-control" placeholder="Nhập tên hoặc mã sản phẩm để tìm...">
+      <div id="compare-suggestions" class="list-group"></div>
+    </div>
+    <div id="compare-picked" class="mb-3"></div>
+    <button id="compare-btn" class="btn btn-primary" disabled>So sánh</button>
+    <div id="compare-result" class="mt-4"></div>
+  `);
+  let compareList = [];
+  $('#compare-search').on('input', function() {
+    const q = $(this).val().trim();
+    if (q.length < 2) {
+      $('#compare-suggestions').empty();
+      return;
+    }
+    $.get('http://localhost/persolwebstore/backend/api/products.php?search=' + encodeURIComponent(q), function(res) {
+      let html = '';
+      (res.products || []).forEach(p => {
+        html += `<a href="#" class="list-group-item list-group-item-action" data-id="${p.product_id}" data-name="${p.name}">${p.name} (${p.brand})</a>`;
+      });
+      $('#compare-suggestions').html(html);
+    }, 'json');
+  });
+  $('#compare-suggestions').on('click', 'a', function(e) {
+    e.preventDefault();
+    const id = $(this).data('id');
+    const name = $(this).data('name');
+    if (!compareList.includes(id) && compareList.length < 4) {
+      compareList.push(id);
+      $('#compare-picked').append(`<span class="badge bg-info me-2 mb-2" data-id="${id}">${name} <i class="bi bi-x ms-1 remove-compare" style="cursor:pointer"></i></span>`);
+      $('#compare-btn').prop('disabled', compareList.length < 2);
+    }
+    $('#compare-suggestions').empty();
+    $('#compare-search').val('');
+  });
+  $('#compare-picked').on('click', '.remove-compare', function() {
+    const id = $(this).parent().data('id');
+    compareList = compareList.filter(x => x != id);
+    $(this).parent().remove();
+    $('#compare-btn').prop('disabled', compareList.length < 2);
+  });
+  $('#compare-btn').on('click', function() {
+    if (compareList.length < 2) return;
+    $.get('http://localhost/persolwebstore/backend/api/products.php?id=' + compareList.join(','), function(res) {
+      let products = Array.isArray(res.product) ? res.product : [res.product];
+      let html = '<div class="table-responsive"><table class="table table-bordered text-center align-middle"><thead><tr>';
+      products.forEach(p => html += `<th>${p.name}</th>`);
+      html += '</tr></thead><tbody>';
+      // Ảnh
+      html += '<tr>';
+      products.forEach(p => {
+        let img = '';
+        if (Array.isArray(p.images) && p.images.length && p.images[0]) {
+          img = p.images[0];
+        } else if (p.image_url && typeof p.image_url === 'string') {
+          let arr = extractImageUrls(p.image_url);
+          if (arr.length) img = arr[0];
+        }
+        if (!img) img = 'assets/images/no-image.png';
+        html += `<td><img src="${img}" style="max-width:120px;max-height:80px" onerror="this.onerror=null;this.src='assets/images/no-image.png'"></td>`;
+      });
+      html += '</tr>';
+      // Giá
+      html += '<tr>';
+      products.forEach(p => html += `<td><b>$${p.price}</b></td>`);
+      html += '</tr>';
+      // Brand
+      html += '<tr>';
+      products.forEach(p => html += `<td>${p.brand || ''}</td>`);
+      html += '</tr>';
+      // Category
+      html += '<tr>';
+      products.forEach(p => html += `<td>${p.category || ''}</td>`);
+      html += '</tr>';
+      html += '</tbody></table></div>';
+      $('#compare-result').html(html);
+    }, 'json');
+  });
 }
 function loadContact() {
   $('#spa-content').html('<h2>Liên hệ</h2><div id="contact-form"></div>');
+} 
+
+// Hàm lấy mảng link ảnh từ image_url (dù là JSON, [url1,url2], hay 1 link)
+function extractImageUrls(image_url) {
+  if (!image_url) return [];
+  try {
+    let arr = JSON.parse(image_url);
+    if (Array.isArray(arr)) return arr;
+  } catch (e) {}
+  let matches = image_url.match(/https?:\/\/[^\s,\]\"]+/g);
+  if (matches) return matches;
+  if (image_url.trim().startsWith('http')) return [image_url.trim()];
+  return [];
 } 

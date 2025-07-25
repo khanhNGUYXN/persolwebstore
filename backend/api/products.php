@@ -7,19 +7,23 @@ $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 10;
 $offset = ($page - 1) * $limit;
 
 if (isset($_GET['id'])) {
-    $stmt = $pdo->prepare('SELECT * FROM products WHERE product_id = ?');
-    $stmt->execute([$_GET['id']]);
-    $product = $stmt->fetch();
-    if ($product) {
+    $ids = explode(',', $_GET['id']);
+    $in = implode(',', array_fill(0, count($ids), '?'));
+    $stmt = $pdo->prepare('SELECT * FROM products WHERE product_id IN (' . $in . ')');
+    $stmt->execute($ids);
+    $products = $stmt->fetchAll();
+    foreach ($products as &$product) {
         if (isset($product['images']) && $product['images']) {
             $product['images'] = json_decode($product['images'], true);
         } else {
             $product['images'] = [];
         }
-        echo json_encode(['product' => $product]);
+    }
+    // Nếu chỉ có 1 sản phẩm, trả về object thay vì mảng
+    if (count($products) === 1) {
+        echo json_encode(['product' => $products[0]]);
     } else {
-        http_response_code(404);
-        echo json_encode(['error' => 'Product not found']);
+        echo json_encode(['product' => $products]);
     }
     exit;
 }
@@ -27,11 +31,15 @@ if (isset($_GET['id'])) {
 $where = '';
 $params = [];
 
-// Xử lý tìm kiếm
+// Xử lý tìm kiếm nâng cao: tách từ khóa, tìm tất cả từ (AND)
 if (isset($_GET['search']) && !empty($_GET['search'])) {
-    $search = '%' . $_GET['search'] . '%';
-    $where = 'WHERE name LIKE ?';
-    $params[] = $search;
+    $keywords = preg_split('/\s+/', trim($_GET['search']));
+    $whereParts = [];
+    foreach ($keywords as $kw) {
+        $whereParts[] = 'name LIKE ?';
+        $params[] = '%' . $kw . '%';
+    }
+    $where = 'WHERE ' . implode(' AND ', $whereParts);
 }
 
 // Xử lý filter theo category
@@ -42,6 +50,24 @@ if (isset($_GET['category_id'])) {
         $where = 'WHERE category_id = ?';
     }
     $params[] = $_GET['category_id'];
+}
+
+// Thêm filter theo price_min và price_max
+if (isset($_GET['price_min']) && is_numeric($_GET['price_min'])) {
+    if ($where) {
+        $where .= ' AND price >= ?';
+    } else {
+        $where = 'WHERE price >= ?';
+    }
+    $params[] = $_GET['price_min'];
+}
+if (isset($_GET['price_max']) && is_numeric($_GET['price_max'])) {
+    if ($where) {
+        $where .= ' AND price <= ?';
+    } else {
+        $where = 'WHERE price <= ?';
+    }
+    $params[] = $_GET['price_max'];
 }
 
 // Đếm tổng số sản phẩm

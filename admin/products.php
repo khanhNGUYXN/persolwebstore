@@ -9,18 +9,53 @@ if(isset($_GET['delete'])) {
   $pdo->prepare('DELETE FROM products WHERE product_id=?')->execute([$id]);
   header('Location: products.php'); exit;
 }
+?>
+<?php
 if(isset($_POST['save'])) {
-  $fields = ['name','brand','category','price','image_url','description','detail_file','images'];
+  $fields = ['name','brand','price','image_url','description','detail_file','images'];
   $data = [];
   foreach($fields as $f) $data[$f] = $_POST[$f] ?? '';
+  $category_id = isset($_POST['category_id']) ? intval($_POST['category_id']) : null;
+
+  // Xử lý upload ảnh
+  $uploadedImages = [];
+  if (!empty($_FILES['product_images']['name'][0])) {
+    $productName = preg_replace('/[^a-zA-Z0-9-_]/', '_', $_POST['name']);
+    $targetDir = __DIR__ . '/../uploads/products/' . $productName . '/';
+    if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+    foreach ($_FILES['product_images']['tmp_name'] as $idx => $tmpName) {
+      if ($_FILES['product_images']['error'][$idx] === 0) {
+        $ext = pathinfo($_FILES['product_images']['name'][$idx], PATHINFO_EXTENSION);
+        $fileName = uniqid('img_') . '.' . $ext;
+        $targetFile = $targetDir . $fileName;
+        if (move_uploaded_file($tmpName, $targetFile)) {
+          $webPath = 'uploads/products/' . $productName . '/' . $fileName;
+          $uploadedImages[] = $webPath;
+        }
+      }
+    }
+  }
+  // Merge ảnh upload vào images (JSON)
+  $imagesArr = [];
+  if (!empty($data['images'])) {
+    $arr = @json_decode($data['images'], true);
+    if (is_array($arr)) $imagesArr = $arr;
+  }
+  $imagesArr = array_merge($imagesArr, $uploadedImages);
+  $data['images'] = json_encode($imagesArr, JSON_UNESCAPED_SLASHES);
+
   if(isset($_POST['id']) && $_POST['id']) {
     // Sửa
-    $sql = "UPDATE products SET name=?, brand=?, category=?, price=?, image_url=?, description=?, detail_file=?, images=? WHERE product_id=?";
-    $pdo->prepare($sql)->execute([$data['name'],$data['brand'],$data['category'],$data['price'],$data['image_url'],$data['description'],$data['detail_file'],$data['images'],$_POST['id']]);
+    $sql = "UPDATE products SET name=?, brand=?, price=?, image_url=?, description=?, detail_file=?, images=?, category_id=? WHERE product_id=?";
+    $pdo->prepare($sql)->execute([
+      $data['name'],$data['brand'],$data['price'],$data['image_url'],$data['description'],$data['detail_file'],$data['images'],$category_id,$_POST['id']
+    ]);
   } else {
     // Thêm
-    $sql = "INSERT INTO products (name, brand, category, price, image_url, description, detail_file, images) VALUES (?,?,?,?,?,?,?,?)";
-    $pdo->prepare($sql)->execute([$data['name'],$data['brand'],$data['category'],$data['price'],$data['image_url'],$data['description'],$data['detail_file'],$data['images']]);
+    $sql = "INSERT INTO products (name, brand, price, image_url, description, detail_file, images, category_id) VALUES (?,?,?,?,?,?,?,?)";
+    $pdo->prepare($sql)->execute([
+      $data['name'],$data['brand'],$data['price'],$data['image_url'],$data['description'],$data['detail_file'],$data['images'],$category_id
+    ]);
   }
   header('Location: products.php'); exit;
 }
@@ -44,6 +79,19 @@ if(isset($_GET['edit'])) {
 // Lấy danh sách categories để render dropdown
 $cat_stmt = $pdo->query('SELECT * FROM categories ORDER BY name');
 $categories = $cat_stmt->fetchAll();
+
+// Đặt hàm extractImageUrls ở đây, ngoài foreach
+if (!function_exists('extractImageUrls')) {
+  function extractImageUrls($image_url) {
+    if (!$image_url) return [];
+    $arr = @json_decode($image_url, true);
+    if (is_array($arr)) return $arr;
+    // Regex lấy tất cả link http(s)
+    if (preg_match_all('/https?:\/\/[^\s,\]\"]+/', $image_url, $matches)) return $matches[0];
+    if (strpos(trim($image_url), 'http') === 0) return [trim($image_url)];
+    return [];
+  }
+}
 function buildCatTree($cats, $parent = null) {
   $tree = [];
   foreach ($cats as $c) {
@@ -65,7 +113,7 @@ function renderCatOptions($cats, $level = 0, $selected = null) {
 ?>
 <a href="?add=1" class="btn btn-success mb-3">Thêm sản phẩm</a>
 <?php if(isset($_GET['add']) || $edit): ?>
-<form method="post" class="mb-4">
+<form method="post" class="mb-4" enctype="multipart/form-data">
   <input type="hidden" name="id" value="<?= $edit['product_id'] ?? '' ?>">
   <div class="row g-2">
     <div class="col-md-4 mb-2">
@@ -87,10 +135,6 @@ function renderCatOptions($cats, $level = 0, $selected = null) {
       <input class="form-control" name="price" type="number" placeholder="Giá" value="<?= $edit['price'] ?? '' ?>">
       <small class="form-text text-muted">Nhập giá sản phẩm (VNĐ)</small>
     </div>
-    <div class="col-md-2 mb-2">
-      <input class="form-control" name="image_url" placeholder="Ảnh đại diện (URL)" value="<?= $edit['image_url'] ?? '' ?>">
-      <small class="form-text text-muted">Dán link ảnh đại diện (URL)</small>
-    </div>
     <div class="col-md-12 mb-2">
       <input class="form-control" name="images" placeholder='Mảng ảnh (JSON: ["url1","url2"])' value='<?= htmlspecialchars($edit['images'] ?? '') ?>'>
       <small class="form-text text-muted">Nhập nhiều link ảnh, dạng JSON: <code>[&quot;url1&quot;,&quot;url2&quot;]</code></small>
@@ -102,6 +146,11 @@ function renderCatOptions($cats, $level = 0, $selected = null) {
     <div class="col-md-12 mb-2">
       <textarea class="form-control" name="description" placeholder="Mô tả chi tiết" rows="2"><?= $edit['description'] ?? '' ?></textarea>
       <small class="form-text text-muted">Mô tả chi tiết về sản phẩm</small>
+    </div>
+    <div class="col-md-12 mb-2">
+      <label class="form-label">Upload ảnh sản phẩm (có thể chọn nhiều)</label>
+      <input class="form-control" type="file" name="product_images[]" multiple accept="image/*">
+      <small class="form-text text-muted">Chọn nhiều ảnh, sẽ tự động thêm vào trường images</small>
     </div>
   </div>
   <button class="btn btn-primary mt-2" name="save">Lưu</button>
@@ -122,7 +171,23 @@ function renderCatOptions($cats, $level = 0, $selected = null) {
         echo htmlspecialchars($catName);
       ?></td>
       <td><?= number_format($p['price']) ?> đ</td>
-      <td><?php if($p['image_url']): ?><img src="<?= $p['image_url'] ?>" width="60"><?php endif; ?></td>
+      <td><?php
+        $img = '';
+        $imgs = extractImageUrls($p['images']);
+        if (count($imgs) && $imgs[0]) {
+          $img = $imgs[0];
+        } else {
+          $imgs2 = extractImageUrls($p['image_url']);
+          if (count($imgs2) && $imgs2[0]) $img = $imgs2[0];
+        }
+        if (!$img) $img = '../frontend/assets/images/no-image.png';
+        // Chuẩn hóa đường dẫn ảnh local
+        if ($img && !preg_match('/^https?:\/\//', $img)) {
+          $img = '/persolwebstore/' . ltrim($img, '/');
+        }
+      ?>
+      <img src="<?= htmlspecialchars($img) ?>" width="60" onerror="this.onerror=null;this.src='/persolwebstore/frontend/assets/images/no-image.png'">
+      </td>
       <td>
         <a href="?edit=<?= $p['product_id'] ?>" class="btn btn-sm btn-warning">Sửa</a>
         <a href="?delete=<?= $p['product_id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Xóa sản phẩm này?')">Xóa</a>

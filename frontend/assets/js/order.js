@@ -238,3 +238,10 @@ $(document).on('click', '#btn-use-profile', function() {
     $('#checkout-msg').removeClass('text-success').addClass('text-danger').text('Lỗi khi lấy thông tin profile!');
   });
 }); 
+
+// Nếu có input số lượng trong cart/checkout, chặn nhập <= 0
+$(document).on('input change', 'input[type="number"][name="quantity"], #detail-qty', function() {
+  let v = parseInt($(this).val()) || 1;
+  if (v < 1) v = 1;
+  $(this).val(v);
+}); 

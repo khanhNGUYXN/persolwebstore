@@ -1,0 +1,317 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PERSOL GLASSES STORE
+
+C2208L _ Group 05
+
+
+AUTHORS	
+Nguyen Ngoc Quoc Khanh
+Bui Ngoc Tuyen
+
+
+Date	
+July, 2025
+
+Instructor	
+FC Hoang Quoc Viet
+
+
+
+In 2025
+
+
+
+
+
+
+
+Contents
+Acknowledgement	4
+PROBLEM DEFINITION	5
+Problem Abstraction:	5
+The Current System:	5
+The Proposed System:	6
+Boundaries of the System:	6
+Hardware and Software Requirements	6
+USER REQUIREMENTS	7
+2.1.1 Customer	7
+2.1.2 Administrator	8
+Use case diagram:	9
+Sitemap for our project	10
+System functions	11
+2.2.1. Login and Sign up	11
+2.2.2. Homepage	11
+2.2.3. Product Catalog/Browsing	12
+2.2.4. User Account Management	12
+2.2.5. Shopping Cart and Checkout	12
+2.2.6. Contact Us/Support	13
+2.2.7. Administration Function	13
+2.2.7.1. Login Function	13
+2.2.7.2. Add New Category Function	13
+2.2.7.3. Edit Category Function	13
+2.2.7.4. Delete Category Function	13
+2.2.7.5. Add New Product Function	13
+2.2.7.6. Edit Product Function	13
+2.2.7.7. Delete Product Function	13
+2.2.7.8. Modify Ratings and Comments Function	13
+2.2.7.9. Edit and Moderate Menus and Posts Function	13
+2.2.7.10. Add and Edit Suppliers/Providers Function	13
+2.2.7.11. Add and Edit Customers Function	14
+2.2.7.12. Billing Management Function	14
+2.2.7.13. Import/Export from Warehouse Function	14
+SYSTEM DESIGNS	14
+• Database Design	14
+DEMO OF THE PROJECT	14
+
+ 
+Acknowledgement
+Our e-Project 1 needs assistance to be done and we, the authors, would like to 
+give our acknowledgement to those who have supported and motivated us during the 
+period of implementing this e-Project 1.
+
+First and foremost, we would like to thank our instructor Mr. Hoang Quoc Viet                                            whose support and useful advice helped us to complete our e - Project 1 
+effectively. His encouragement and comments had dramatically enriched and improved our work.
+
+Secondly, we would like to thank Aprotrain - Aptech Computer Education, 
+teachers, and staff for their support throughout our learning and completing this 
+e-Project 3.
+
+Thirdly, we would like to thank our families’ members including our parents, 
+spouses and siblings for their support and care all the time, especially in the period of 
+completing our work.
+
+Lastly, our deep thanks come to all our classmates during studying time in 
+Aptech. Their kind help, care, and motivation help us conquer the higher targets in the
+Future.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PROBLEM DEFINITION
+Problem Abstraction:
+In today's rapidly evolving digital landscape, businesses like Persol, dealing with physical products like lenses and frames, face the challenge of effectively reaching their target audience and providing convenient access to their extensive product catalog. Traditional advertising methods like pamphlets and television commercials, while still relevant, may not be sufficient in capturing the attention of tech-savvy consumers who prefer online shopping and information gathering. Furthermore, managing a large inventory and ensuring customers have up-to-date information on available products can be complex.
+
+To address these challenges, we propose developing a comprehensive and user-friendly e-commerce website for Persol. This platform will serve as a centralized hub where customers can easily browse the entire collection of lenses and frames, access detailed product information, and potentially even make purchases online. This digital presence will enable Persol to expand its reach, improve customer engagement, and streamline its operations.
+
+By creating a professional and informative website, Persol can enhance its brand image, provide a superior customer experience, and stay competitive in the market. Customers, in turn, will benefit from the convenience of online browsing, detailed product descriptions, and potentially personalized recommendations.
+
+The goal of this project is to create a seamless and efficient online experience for Persol's customers, allowing them to easily discover and purchase the perfect lenses and frames while simultaneously providing Persol with a modern platform to manage and showcase its products.
+The Current System:
+Persol currently relies on traditional advertising methods such as distributing pamphlets and television commercials. While these methods can reach a broad audience, they may not be the most cost-effective or targeted approach. Furthermore, they don't offer the same level of interactivity and detailed information that a website can provide. Customers interested in Persol's products likely need to visit a physical store to see the full range of lenses and frames, which can be inconvenient and time-consuming. This traditional approach can also make it challenging for Persol to efficiently manage its inventory and communicate updates about new products or promotions.
+
+However, with the widespread adoption of the internet, creating a dedicated website offers significant advantages. A website provides a centralized platform for showcasing the entire product catalog, providing detailed specifications, and offering customers a convenient way to browse and compare different options. It also opens up opportunities for targeted marketing, personalized recommendations, and direct customer interaction.
+
+By transitioning to a digital platform, Persol can expand its reach beyond geographical limitations, improve customer engagement, and streamline its operations.
+The Proposed System:
+The proposed system will be a single-page application (SPA) and responsive website, accessible across various devices and browsers (Chrome, IE, Firefox, etc.). The website will feature a user-friendly interface that allows customers to easily navigate through the extensive collection of lenses and frames. Users will be able to search for specific products, filter by various criteria (e.g., frame style, lens type), and view detailed product information, including images, specifications, and pricing. The website may also include features such as virtual try-on, personalized recommendations, and online ordering.
+Boundaries of the System:
+The website will focus on showcasing Persol's lenses and frames and providing customers with a convenient online browsing and potentially purchasing experience. While the website will provide detailed product information, it may not initially integrate with inventory management or order fulfillment systems. The initial scope will prioritize creating a user-friendly and informative platform for product discovery. Future development may include features like e-commerce functionality, integration with existing systems, and customer support features.
+
+
+Hardware and Software Requirements
+
+Hardware:
+•The minimum system requirement to host the website and allow user to access all 
+functions is a computer with an Intel Core™ i3 processor or equivalent.
+• System has at least 2GB RAM, 8GB RAM is recommended.
+• 1GB free of disk space, 512GB solid state drive (SSD) is recommended for the best 
+performance.
+
+Software:
+• Windows Server 2012, Windows 7 or higher version.
+• A server software (XAMPP, LAMPP…) with MySQL database management.
+• An up-to-date browser (e.g., Google Chrome, Microsoft Edge, Safari, Firefox, and so 
+on.)
+
+
+USER REQUIREMENTS
+
+Users of the System:
+
+The system caters to two primary user groups: Customers and Administrators.
+Customers are individuals who interact with the website to browse and purchase various types of men’s clothes. They can create accounts, place orders, engage with community forums by reading and commenting on topics, and manage their purchase history.
+
+Administrators have full access to the system's backend and are responsible for managing the website's content, products, users, and community interactions. Their responsibilities include creating and managing product categories, adding and modifying products, managing user accounts, creating and moderating community topics and comments, and overseeing ratings.
+2.1.1 Customer
+
+•	Account Management: Customers can create and manage their accounts, including updating personal information, addresses, and payment details.
+
+•	Product Browsing and Purchase: Customers can browse various products by category, style, material, brand, or other relevant criteria. They can view detailed product information, images, and customer reviews. They can add items to their cart, proceed through the checkout process, and place orders.
+
+
+•	Order Tracking: Customers can track the status of their orders, view shipping information, and access their order history.
+
+•	Community Engagement: Customers can read articles and participate in community forums by creating, reading, and commenting on topics.
+
+
+•	Ratings and Reviews: Customers can rate and review products they have purchased.
+•	
+2.1.2 Administrator
+
+•	Category Management: Administrators can create, modify, and delete product categories.
+
+•	Product Management: Administrators can add, modify, and delete products, including product details, images, pricing, and inventory.
+•	User Management: Administrators can manage user accounts, including viewing user details, modifying user information, and suspending or deleting accounts.
+•	Topic and Comment Management: Administrators can create, modify, and delete community topics. They can also moderate comments, removing inappropriate or spam content.
+•	Rating Management: Administrators can view and manage product ratings and reviews.
+
+Use case diagram: 
+ 
+
+
+Sitemap for our project
+ 
+System functions
+
+2.2.1. Login and Sign up
+
++Description: Users need to login so that they can use some of the website’s 
+functions such as buy insurances, view your transactions or contracts, etc. If 
+users don’t have an account, a sign up form with progress bar will be shown. The 
+sign up function will also send a token email to user in order to verified that 
+account.
+
++Flowchart:
+  
+
+
+2.2.2. Homepage
+• Description: The homepage serves as the central hub for the website, providing an overview of Persol's offerings and facilitating user interaction.
+• Key Sections:
+o Featured Products: Showcases a selection of popular or new eyeglass lenses, frames, and accessories.
+o Categories: Provides quick links to browse products by brand, frame type, or lens type.
+o About Us: Briefly introduces Persol and its mission of delivering stylish, high-quality eyewear.
+o Contact Information: Displays the store's address, phone number, and email address.
+o Promotional Banner/Newsletter Signup: A section for special offers or a form to subscribe to the newsletter for updates and promotions.
+
+2.2.3. Product Catalog/Browsing
+• Description: Allows users to explore the full range of eyewear and accessories available.
+• Features:
+o Search Functionality: Enables users to search for specific products by keywords, lens material, frame style, brand, etc.
+o Filtering and Sorting: Provides options to filter products by various criteria (e.g., price range, frame material, color, lens type) and sort them by popularity, price, or other attributes.
+o Detailed Product Pages: Each product has a dedicated page with high-resolution images, detailed descriptions, specifications (e.g., size, fit, material), and customer reviews.
+
+2.2.4. User Account Management
+• Description: Enables users to create and manage their Persol accounts.
+• Features:
+o Registration: Allows new users to create accounts by providing necessary information.
+o Login/Logout: Secure access to user accounts.
+o Profile Management: Users can update their personal information, addresses, and payment details.
+o Order History: Users can view their past purchases and track current orders.
+
+2.2.5. Shopping Cart and Checkout
+• Description: Facilitates the online purchasing process of eyewear products.
+• Features:
+o Add to Cart: Users can add selected glasses or lenses to their shopping cart.
+o View Cart: Users can review the items in their cart, adjust quantities, and remove items.
+o Checkout Process: A secure and streamlined process where users enter shipping details, select a payment method, and confirm their order.
+
+2.2.6. Contact Us/Support
+• Description: Provides multiple ways for users to contact Persol for inquiries or support.
+• Features:
+o Contact Form: Users can submit questions or issues directly via a contact form.
+o Email Address: Direct email support.
+o Phone Number: Customer service hotline.
+o FAQ Section: Answers to frequently asked questions regarding product details, orders, delivery, and return policies.
+
+2.2.7. Administration Function
+2.2.7.1. Login Function
+• Description: Designed for administrators to access the administration dashboard. Grants access to all management features.
+• Input: Email and password.
+• Processing: Retrieve data from the database, verify credentials, and check if the user has admin privileges. Deny login if the credentials or role are incorrect.
+• Display: Login interface with email and password fields.
+
+2.2.7.2. Add New Category Function
+• Admin adds new eyewear categories (e.g., "Prescription Glasses", "Sunglasses", "Kids’ Glasses").
+2.2.7.3. Edit Category Function
+• Admin edits eyewear categories’ names or details.
+2.2.7.4. Delete Category Function
+• Admin deletes a product category; ensures no dependent eyewear items remain.
+2.2.7.5. Add New Product Function
+• Add glasses/lens products with details: material, size, prescription range, image, price, etc.
+2.2.7.6. Edit Product Function
+• Edit existing product info like available colors, price, or descriptions.
+2.2.7.7. Delete Product Function
+• Remove eyewear items no longer in stock or discontinued.
+2.2.7.8. Modify Ratings and Comments Function
+• Admin moderates user reviews on glasses (e.g., comfort, fit, look).
+2.2.7.9. Edit and Moderate Menus and Posts Function
+• Admin adjusts site navigation or blog posts about eye health, style tips.
+2.2.7.10. Add and Edit Suppliers/Providers Function
+• Manage eyewear brand partners and frame/lens suppliers.
+2.2.7.11. Add and Edit Customers Function
+• Manage customer details, including prescription history if applicable.
+2.2.7.12. Billing Management Function
+• Manage order invoices, payment tracking, and issue refunds.
+2.2.7.13. Import/Export from Warehouse Function
+• Import/export inventory data, track eyewear stock by model and brand.
+
+
+SYSTEM DESIGNS
+
+• Database Design
+
+ 
+
+
+
+
+DEMO OF THE PROJECT
+
+
+                     
+
+
+
+
+TASK SHEET
+
+Task	Start time	Finish time	Implemented by	Evaluation(%)
+Góp ý nội dung lần 1	11/07/2025	11/07/2025	Tuyen	10
+Góp ý nội dung lần 2	12/07/2025	12/07/2025	Khanh	10
+Tổng hợp góp ý	13/07/2025	13/07/2025	Tuyen	20
+Duyệt nội dung	14/07/2025	14/07/2025	Khanh + Tuyen	30
+Phân tích yêu cầu Admin	15/07/2025	16/07/2025	Khanh + Tuyen	50
+Phân tích yêu cầu User	15/07/2025	17/07/2025	Khanh + Tuyen	50
+Thiết kế DB	18/07/2025	19/07/2025	Khanh	50
+Thiết kế giao diện User	18/07/2025	22/07/2025	Khanh + Tuyen	50
+

@@ -1,138 +1,115 @@
+# PERSOL WEBSTORE - SITEMAP DỰ ÁN
 
-Index
+## 1. Root Project Structure
 
-1.	Introduction
-2.	Objectives
-3.	Problem Statement
-4.	Hardware/ Software Requirements
+persolwebstore/
+├── frontend/                # Giao diện người dùng (SPA)
+│   ├── index.html           # Entry point SPA
+│   └── assets/
+│       ├── css/
+│       │   └── style.css    # Toàn bộ style frontend
+│       └── js/
+│           ├── app.js       # Điều hướng SPA, global logic
+│           ├── auth.js      # Đăng nhập, đăng ký
+│           ├── cart.js      # Giỏ hàng
+│           ├── order.js     # Đặt hàng, lịch sử mua hàng
+│           ├── product.js   # Hiển thị sản phẩm, chi tiết, tìm kiếm
+│           ├── user.js      # Quản lý thông tin cá nhân
+│           ├── contact.js   # Trang liên hệ
+│           └── filter.js    # Lọc sản phẩm
+│       └── images/          # Ảnh tĩnh frontend (nếu có)
+├── backend/                 # API Backend PHP
+│   ├── api/
+│   │   ├── auth.php         # Đăng nhập, đăng ký, xác thực
+│   │   ├── cart.php         # API giỏ hàng
+│   │   ├── order.php        # API đơn hàng
+│   │   ├── products.php     # API sản phẩm (list, search, detail)
+│   │   ├── categories.php   # API danh mục
+│   │   ├── user.php         # API thông tin cá nhân, đổi mật khẩu
+│   │   ├── gemini_chat.php  # Proxy chat AI Gemini
+│   │   └── banner.php       # API banner trang chủ
+│   ├── db/
+│   │   ├── db.php           # Kết nối database (PDO)
+│   │   ├── import_csv.php   # Import sản phẩm từ CSV
+│   │   └── update_users_profile.php # Update profile user
+│   └── config_gemini.php    # API key Gemini (bảo mật, ignore git)
+├── admin/                   # Admin Panel (quản trị)
+│   ├── includes/            # Header, sidebar, auth, ...
+│   ├── products.php         # Quản lý sản phẩm (CRUD, upload ảnh)
+│   ├── users.php            # Quản lý user (lock/unlock)
+│   ├── orders.php           # Quản lý đơn hàng
+│   ├── dashboard.php        # Thống kê tổng quan
+│   ├── banner.php           # Quản lý banner
+│   └── ...                  # Các trang quản trị khác
+├── database/
+│   ├── persol.sql           # File tạo bảng, dữ liệu mẫu
+│   └── converted-file.csv   # File dữ liệu sản phẩm import
+├── uploads/                 # Thư mục lưu ảnh upload (banner, sản phẩm)
+│   ├── banner/
+│   └── products/
+├── README.md                # Hướng dẫn sử dụng, setup
+├── description.txt          # (File này) Sitemap dự án
+└── .gitignore               # Bỏ qua file nhạy cảm, thư mục upload
 
+## 2. Luồng chức năng chính
 
+- **Frontend SPA**: Điều hướng hash (#home, #products, #search, #cart, #profile, #contact, ...)
+- **Backend API**: RESTful, trả JSON, bảo mật, phân quyền
+- **Admin Panel**: Quản lý sản phẩm, user, đơn hàng, banner, dashboard
+- **Database**: MySQL, chuẩn hóa, liên kết khóa ngoại
+- **Uploads**: Lưu ảnh banner, sản phẩm, quản lý qua admin
+- **Chat AI**: Nút nổi, proxy Gemini API, markdown, bảo mật key
 
+## 3. Ghi chú
+- Tất cả API endpoint đều nằm trong backend/api/
+- Tất cả upload ảnh đều lưu trong uploads/ (không public qua git)
+- File config_gemini.php không commit lên git
+- Đảm bảo phân quyền rõ ràng giữa user và admin
+- SPA chỉ có 1 file index.html, còn lại render động bằng JS
 
+---
 
+## 6. Website Sitemap (PlantUML)
 
+```plantuml
+@startmindmap
+* Trang chủ (Home)
+** Sản phẩm (Products)
+*** Danh sách sản phẩm
+*** Tìm kiếm/Lọc sản phẩm
+*** Chi tiết sản phẩm
+**** So sánh sản phẩm
+**** Thêm vào giỏ hàng
+** Giỏ hàng (Cart)
+*** Chỉnh sửa số lượng
+*** Xóa sản phẩm
+*** Đặt hàng
+** Đăng nhập/Đăng ký (Auth)
+*** Đăng nhập
+*** Đăng ký
+*** Quản lý thông tin cá nhân
+*** Lịch sử mua hàng
+*** Đổi mật khẩu
+** Liên hệ (Contact)
+** Chat AI Gemini
+*** Hỏi đáp, tìm kiếm, so sánh, tư vấn
+** Admin Panel
+*** Dashboard
+*** Quản lý sản phẩm
+**** Thêm/sửa/xóa sản phẩm
+**** Upload ảnh
+*** Quản lý user
+**** Khóa/mở user
+*** Quản lý đơn hàng
+**** Xem chi tiết đơn hàng
+**** Đổi trạng thái đơn
+*** Quản lý banner
+**** Thêm/sửa/xóa banner
+**** Upload ảnh banner
+@endmindmap
+```
 
-
-	
- 
-
-
-Introduction
-
-
-The thirst for learning, upgrading technical skills and applying the concepts in real life environment at a fast pace is what the industry demands from IT professionals today. However busy work schedules, far-flung locations, unavailability of convenient time-slots pose as major barriers when it comes to applying the concepts into realism.  And hence the need to look out for alternative means of implementation in the form of laddered approach. 
-
-The above truly pose as constraints especially for our students too! With their busy schedules, it is indeed difficult for our students to keep up with the genuine and constant need for integrated application which can be seen live especially so in the field of IT education where technology can change on the spur of a moment. Well, technology does come to our rescue at such times!!
-
-Keeping the above in mind and in tune with our constant endeavour to use Technology in our training model, we at Aptech have thought of revolutionizing the way our students learn and implement the concepts using tools themselves by providing a live and synchronous eProject   learning environment!
-
-So what is this eProject?
-
-eProject is a step-by-step learning environment that closely simulates the classroom and Lab based learning environment into actual implementation. It is a project implementation at your fingertips!! An electronic, live juncture on the machine that allows you to 
-
-o	Practice step by step i.e. laddered approach.
-o	Build a larger more robust application.
-o	Usage of certain utilities in applications designed by user.
-o	Single program to unified code leading to a complete application.
-o	Learn implementation of concepts in a phased manner.
-o	Enhance skills and add value.
-o	Work on real life projects. 
-o	Give a real life scenario and help to create applications more complicated and useful.
-o	Mentoring through email support.
-
-
-The students at the centre are expected to complete this eProject and send complete project along with the documentation to eProjects Team 
-
-
-Looking forward to a positive response from your end!!
- 
-
-
-Objectives of the project
-
-
-The Objective of this program is to give a sample project to work on real life projects. These applications help you build a larger more robust application. 
-
-The objective is not to teach you JSON/JavaScript/Dreamweaver/HTML5 but to provide you with a real life scenario and help you create basic applications using the tools.
-
-You can revise the chapters before you start with the project. 
-
-This project is meant for students who have completed the module of HTML5. These programs should be done in the Lab sessions with assistance of the faculty if required.
-
-It is very essential that a student has a clear understanding of the subject. Students should go through the project and solve the assignments as per requirements given. 
-
-Kindly get back to eProjects Team in case of any doubts regarding the application or its objectives.
-
-
-
-
- 
-
-
-Problem Statement
-
-Persol is selling various types of Lenses and Frames. Company has a large collection of Frames and lenses. The company advertises by distributing the pamphlets, advertising on television and so on. Due to rapid development in internet field, the company decides to launch a website where people will get all the information about the various products available with them easily.
-You are supposed to create a website for them with the below mentioned requirement specifications.
-
-You are supposed to create a Single-Page-Application and responsive Website for them with the below mentioned requirement specifications.
-
-The website should work well in all leading browsers including Chrome, IE, Firefox etc. 
-
-
-Requirement Specification:
- 
-The portal will be designed as a Single-Page-Application and responsive Website with a set of pages and menus that represent choice of activities to be performed. The pages, menus, and other visual elements must be designed in a visually appealing manner with attractive fonts, colors, and animations. All of these should also be laid out in a responsive manner. 
-
-The Web site is to be created based on the following requirements.
-
-1)	The Top of the Page should contain logo of the site with suitable images. 
-2)	The site should display a menu which will contain the options for brief introduction about the various frames and lenses available, location of the shop and any other information if required.
-3)	The information should be categorized according to the brand names of the products like if a User wants to see only “Ray-Ban” products or any other companies products then he/she can click on a Link/button/menu etc and can see only that Brand products.
-4)	Another category option for “Contact Lenses”, “SunGlasses” etc. should be created and accordingly the products should be listed.
-5)	When a user selects any particular brand, a list of products for that brand will be displayed
-6)	A brief summary of features of individual products should be displayed on the Web Page along with the product but detailed Features should be stored in Individual Word documents which can be downloaded or viewed by the User who wishes to see the same.
-7)	The user should also be able to compare the various products of different as well as similar brands.
-8)	There should be a “Contact Us” page which will have the Address of the Company which is as follows and the mail address which when clicked will invoke the local mail client from where they can send an email. Address of the Company should be displayed using GeoLocation API (eg. GoogleMaps).
-
-
-
-Over and above this, the portal should implement the following functionalities:
-
-•	Display a continuous scrolling ticker at the bottom of the page with current date, time, and location (hint: Use geolocation features of HTML5).
-•	Display a visitor count at the top right corner of the page beside a logo image. 
-•	The menu options should change color on hover and also after clicking. 
-•	Fade in and fade out options can be used for the menus.
-
-
-
- 
-Hardware/ Software Requirements
-Hardware 
-•	Intel Core i3/i5 Processor or higher 
-•	8 GB RAM or above 
-•	Color SVGA
-•	500 GB Hard Disk space
-•	Mouse 
-•	Keyboard
-
-Software 
-Technologies to be used: 
-•	Frontend: HTML5, CSS, Bootstrap, JavaScript, jQuery, React/AngularJS, Figma, XML 
-•	Data Store: JSON files or TXT files 
-
-Other Requirements: 
-•	Operating Portal: Windows
-•	Browsers: Edge, Chrome, Mozilla Firefox, Safari
-
-Project Deliverables
-You will design and build the project and submit it along with a complete project
-report that includes:
-• Problem Definition
-• Design specifications
-• Diagrams such as flowcharts for various activities, Data Flow Diagrams etc.
-• Source Code
-• Test Data Used in the Project
-• Project Installation Instructions (if any)
-Documentation is considered as a very important part of the project. Ensure that documentation is complete and comprehensive. The consolidated project will be submitted as a zip file with a ReadMe.doc file listing assumptions (if any) made.
-Submit a video clip demonstrating the working of the Website. Optionally, a live hosted URL can be supplied for the site. Over and above the given specifications, you can apply your creativity and logic to improve the portal.
+**Hướng dẫn:**
+- Copy đoạn trên vào https://plantuml.com/mindmap để xem sitemap dạng cây trực quan.
+- Mỗi nhánh thể hiện một hướng đi/chức năng chính của website.
 

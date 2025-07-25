@@ -34,6 +34,7 @@ if (!isset($no_auth)) require_once 'auth.php';
           <li class="nav-item"><a class="nav-link<?= basename($_SERVER['SCRIPT_NAME'])=='categories.php'?' active':'' ?>" href="categories.php">Danh mục</a></li>
           <li class="nav-item"><a class="nav-link<?= basename($_SERVER['SCRIPT_NAME'])=='users.php'?' active':'' ?>" href="users.php">Người dùng</a></li>
           <li class="nav-item"><a class="nav-link<?= basename($_SERVER['SCRIPT_NAME'])=='orders.php'?' active':'' ?>" href="orders.php">Đơn hàng</a></li>
+          <li class="nav-item"><a class="nav-link<?= basename($_SERVER['SCRIPT_NAME'])=='comments.php'?' active':'' ?>" href="comments.php"><i class="bi bi-chat-dots"></i> Bình luận</a></li>
           <li class="nav-item"><a class="nav-link<?= basename($_SERVER['SCRIPT_NAME'])=='banner.php'?' active':'' ?>" href="banner.php">Banner</a></li>
           <li class="nav-item mt-3"><a class="nav-link logout-link" href="logout.php">Đăng xuất</a></li>
         </ul>

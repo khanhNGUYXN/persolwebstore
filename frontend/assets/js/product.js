@@ -42,21 +42,41 @@ function extractImageUrls(image_url) {
   return [];
 }
 
+// Thêm hàm chuẩn hóa đường dẫn ảnh
+function normalizeImageUrl(img) {
+  if (!/^https?:\/\//.test(img)) {
+    return '/persolwebstore/' + img.replace(/^\/+/, '');
+  }
+  return img;
+}
+
 // Hàm load danh sách sản phẩm (dùng backend nếu có)
-function loadProducts(category_id = null, page = 1, searchTerm = '') {
+function loadProducts(category_id = null, page = 1, searchTerm = '', priceMin = '', priceMax = '') {
+  let priceFilterHtml = `
+    <div class="col-md-4 mb-2 mb-md-0">
+      <select id="price-segment" class="form-select">
+        <option value="">All price ranges</option>
+        <option value="0-200">Under $200</option>
+        <option value="200-400">$200 - $400</option>
+        <option value="400-700">$400 - $700</option>
+        <option value="700-99999">Above $700</option>
+      </select>
+    </div>
+  `;
   let searchHtml = `
-    <div class="row mb-4">
-      <div class="col-md-6 mx-auto">
+    <div class="row mb-4 align-items-center">
+      <div class="col-md-6 mb-2 mb-md-0">
         <div class="input-group">
           <input type="text" class="form-control" id="search-input" placeholder="Tìm kiếm sản phẩm theo tên..." value="${searchTerm}">
           <button class="btn btn-primary" type="button" id="search-btn">
             <i class="bi bi-search"></i> Tìm kiếm
           </button>
-          <button class="btn btn-outline-secondary" type="button" id="clear-search-btn" ${searchTerm ? '' : 'style="display:none"'}>
+          <button class="btn btn-outline-secondary" type="button" id="clear-search-btn" ${searchTerm ? '' : 'style=\"display:none\"'}>
             <i class="bi bi-x-circle"></i> Xóa
           </button>
         </div>
       </div>
+      ${priceFilterHtml}
     </div>
   `;
   
@@ -69,8 +89,17 @@ function loadProducts(category_id = null, page = 1, searchTerm = '') {
   // Xử lý sự kiện tìm kiếm
   $('#search-btn').on('click', function() {
     const term = $('#search-input').val().trim();
+    const priceVal = $('#price-segment').val();
+    let priceMin = '', priceMax = '';
+    if (priceVal) {
+      let parts = priceVal.split('-');
+      priceMin = parts[0];
+      priceMax = parts[1];
+    }
     if (term) {
       window.location.hash = `#search-${encodeURIComponent(term)}`;
+    } else {
+      loadProducts(category_id, 1, '', priceMin, priceMax);
     }
   });
   
@@ -86,12 +115,28 @@ function loadProducts(category_id = null, page = 1, searchTerm = '') {
     $('#search-input').val('');
     window.location.hash = '#products';
   });
+
+  // Sự kiện chọn filter giá
+  $('#price-segment').on('change', function() {
+    const priceVal = $(this).val();
+    let priceMin = '', priceMax = '';
+    if (priceVal) {
+      let parts = priceVal.split('-');
+      priceMin = parts[0];
+      priceMax = parts[1];
+    }
+    // Giữ searchTerm nếu có
+    loadProducts(category_id, 1, $('#search-input').val().trim(), priceMin, priceMax);
+  });
+
   let url = 'http://localhost/persolwebstore/backend/api/products.php?page=' + page + '&limit=10';
   if (category_id) url += '&category_id=' + category_id;
   if (searchTerm) url += '&search=' + encodeURIComponent(searchTerm);
+  if (priceMin) url += '&price_min=' + priceMin;
+  if (priceMax) url += '&price_max=' + priceMax;
   $.get(url, function(res) {
     console.log('API Response:', res); // Debug log
-    let html = '<div class="row">';
+  let html = '<div class="row">';
     if (!res.products || res.products.length === 0) {
       let noResultsMsg = searchTerm ? 
         `Không tìm thấy sản phẩm nào với từ khóa "${searchTerm}"` :
@@ -111,14 +156,16 @@ function loadProducts(category_id = null, page = 1, searchTerm = '') {
           indicators += '</div>';
           carousel += `<div id='${carouselId}' class='carousel slide' data-bs-ride='carousel'>${indicators}<div class='carousel-inner'>`;
           images.forEach((img, i) => {
-            carousel += `<div class='carousel-item${i===0?' active':''}'><img src='${img}' onerror=\"this.onerror=null;this.src='https://via.placeholder.com/180x120?text=No+Image'\" class='d-block w-100 card-img-top' style='height:200px;object-fit:contain'></div>`;
+            carousel += `<div class='carousel-item${i===0?' active':''}'><img src='${normalizeImageUrl(img)}' onerror=\"this.onerror=null;this.src='https://via.placeholder.com/180x120?text=No+Image'\" class='d-block w-100 card-img-top' style='height:200px;object-fit:contain'></div>`;
           });
           carousel += `</div><button class='carousel-control-prev' type='button' data-bs-target='#${carouselId}' data-bs-slide='prev'><span class='carousel-control-prev-icon'></span></button><button class='carousel-control-next' type='button' data-bs-target='#${carouselId}' data-bs-slide='next'><span class='carousel-control-next-icon'></span></button></div>`;
         } else if (images.length === 1) {
-          carousel = `<img src='${images[0]}' onerror=\"this.onerror=null;this.src='https://via.placeholder.com/180x120?text=No+Image'\" class='card-img-top' alt='${p.name}' style='height:200px;object-fit:contain'>`;
+          carousel = `<img src='${normalizeImageUrl(images[0])}' onerror=\"this.onerror=null;this.src='https://via.placeholder.com/180x120?text=No+Image'\" class='card-img-top' alt='${p.name}' style='height:200px;object-fit:contain'>`;
         } else {
           carousel = `<img src='https://via.placeholder.com/180x120?text=No+Image' class='card-img-top' alt='No image' style='height:200px;object-fit:contain'>`;
         }
+        // Sửa đoạn render nút chi tiết:
+        let prodId = p.product_id || p.id || '';
         html += `<div class='col-12 col-sm-6 col-md-4 mb-4 d-flex'>
           <div class='card product-card w-100 h-100 d-flex flex-column'>
             ${carousel}
@@ -127,15 +174,15 @@ function loadProducts(category_id = null, page = 1, searchTerm = '') {
               <div class='product-price mb-2'>${p.price ? (p.price.toLocaleString('vi-VN') + '₫') : ''}</div>
               <p class='card-text flex-grow-1'>${p.description || ''}</p>
               <div class='mt-auto d-flex'>
-                <button class='btn btn-detail me-2' onclick='showProductDetail(${p.product_id})'>Xem chi tiết</button>
-                <button class='btn btn-add-cart add-to-cart-btn ms-auto' data-id='${p.product_id}'><i class='bi bi-cart-plus me-1'></i>Thêm vào giỏ</button>
+                <button class='btn btn-detail me-2' onclick='showProductDetail(${prodId})'>Xem chi tiết</button>
+                <button class='btn btn-add-cart add-to-cart-btn ms-auto' data-id='${prodId}'><i class='bi bi-cart-plus me-1'></i>Thêm vào giỏ</button>
               </div>
             </div>
           </div>
         </div>`;
       });
     }
-    html += '</div>';
+  html += '</div>';
     // Render pagination
     if (res.total > res.limit) {
       html += '<nav><ul class="pagination justify-content-center">';
@@ -144,6 +191,8 @@ function loadProducts(category_id = null, page = 1, searchTerm = '') {
       let show = 2;
       let cat = category_id ? category_id : '';
       let search = searchTerm ? encodeURIComponent(searchTerm) : '';
+      let priceMinParam = priceMin ? encodeURIComponent(priceMin) : '';
+      let priceMaxParam = priceMax ? encodeURIComponent(priceMax) : '';
       
       if (cur > 1) {
         let firstUrl = search ? `#search-${search}-page-1` : 
@@ -170,7 +219,7 @@ function loadProducts(category_id = null, page = 1, searchTerm = '') {
       }
       html += '</ul></nav>';
     }
-    $('#product-list').html(html);
+  $('#product-list').html(html);
   }, 'json').fail(function(xhr, status, error) {
     console.error('API Error:', xhr.responseText);
     $('#product-list').html('<div class="alert alert-danger">Có lỗi xảy ra khi tải danh sách sản phẩm: ' + error + '</div>');
@@ -182,8 +231,8 @@ function showProductDetail(id) {
   $.get('http://localhost/persolwebstore/backend/api/products.php?id=' + id, function(res) {
     const p = res.product;
     let images = (Array.isArray(p.images) && p.images.length) ? p.images : extractImageUrls(p.image_url);
-    let carousel = '';
     let carouselId = 'carousel-detail-' + id;
+    let carousel = '';
     if (images.length > 1) {
       // Carousel indicators
       let indicators = '<div class="carousel-indicators">';
@@ -193,11 +242,11 @@ function showProductDetail(id) {
       indicators += '</div>';
       carousel += `<div id='${carouselId}' class='carousel slide mb-3' data-bs-ride='carousel'>${indicators}<div class='carousel-inner'>`;
       images.forEach((img, i) => {
-        carousel += `<div class='carousel-item${i===0?' active':''}'><img src='${img}' class='d-block w-100 rounded detail-main-img' style='max-height:340px;object-fit:contain'></div>`;
+        carousel += `<div class='carousel-item${i===0?' active':''}'><img src='${normalizeImageUrl(img)}' class='d-block w-100 rounded detail-main-img' style='max-height:340px;object-fit:contain'></div>`;
       });
       carousel += `</div><button class='carousel-control-prev' type='button' data-bs-target='#${carouselId}' data-bs-slide='prev'><span class='carousel-control-prev-icon'></span></button><button class='carousel-control-next' type='button' data-bs-target='#${carouselId}' data-bs-slide='next'><span class='carousel-control-next-icon'></span></button></div>`;
     } else if (images.length === 1) {
-      carousel = `<img src='${images[0]}' class='img-fluid rounded detail-main-img mb-3' alt='${p.name}' style='max-height:340px;object-fit:contain'>`;
+      carousel = `<img src='${normalizeImageUrl(images[0])}' class='img-fluid rounded detail-main-img mb-3' alt='${p.name}' style='max-height:340px;object-fit:contain'>`;
     } else {
       carousel = `<img src='https://via.placeholder.com/320x180?text=No+Image' class='img-fluid rounded detail-main-img mb-3' alt='No image' style='max-height:340px;object-fit:contain'>`;
     }
@@ -238,14 +287,24 @@ function showProductDetail(id) {
     if (p.detail_file && (p.detail_file.endsWith('.pdf') || p.detail_file.endsWith('.doc') || p.detail_file.endsWith('.docx'))) {
       downloadBtn = `<a href='${p.detail_file}' class='btn btn-outline-info w-100 mb-2' target='_blank'><i class='bi bi-download me-1'></i>Tải file mô tả</a>`;
     }
-    // Voting stars
-    let voteKey = 'product_vote_' + p.product_id;
-    let currentVote = parseInt(localStorage.getItem(voteKey)) || 0;
-    let starsHtml = `<div class='detail-stars mb-2'>`;
+    // Voting stars (hiển thị điểm thực tế)
+    let user = JSON.parse(localStorage.getItem('user') || 'null');
+    let starsHtml = `<div id='rating-block' class='mb-2'><span id='avg-rating'></span> <span id='total-rating'></span><div class='detail-stars mt-1 mb-2'>`;
     for (let i = 1; i <= 5; i++) {
-      starsHtml += `<i class='bi bi-star${i <= currentVote ? '-fill text-warning' : ''} star-vote' data-star='${i}' style='font-size:1.5em;cursor:pointer;'></i>`;
+      starsHtml += `<i class='bi bi-star star-vote' data-star='${i}' style='font-size:1.5em;cursor:pointer;'></i>`;
     }
-    starsHtml += `</div>`;
+    starsHtml += `</div></div>`;
+    // Bình luận
+    let commentHtml = `<div class='mt-4'><h5>Bình luận sản phẩm</h5><div id='comment-list'>Đang tải...</div>`;
+    if (user && user.user_id) {
+      commentHtml += `<form id='comment-form' class='mb-3'><div class='input-group'>
+        <input type='text' class='form-control' id='comment-input' placeholder='Nhập bình luận...'>
+        <button class='btn btn-primary' type='submit'>Gửi</button>
+      </div></form>`;
+    } else {
+      commentHtml += `<div class='text-muted small'>Đăng nhập để bình luận.</div>`;
+    }
+    commentHtml += `</div>`;
     let html = `<div class='card detail-card p-3'>
       ${breadcrumb}
       <div class='row g-4'>
@@ -259,25 +318,90 @@ function showProductDetail(id) {
             ${qtyBlock}
             ${addCartBtn}
             ${downloadBtn}
-          </div>
+            ${commentHtml}
         </div>
       </div>
-    </div>`;
-    $('#spa-content').html(html);
-    // Voting stars event
-    $('.star-vote').click(function(){
+    </div>
+  </div>`;
+  $('#spa-content').html(html);
+    // Lấy rating thực tế
+    $.get('http://localhost/persolwebstore/backend/api/rating.php?product_id=' + p.product_id, function(r) {
+      $('#avg-rating').html(`<b>${r.avg_rating || 0}</b> <i class='bi bi-star-fill text-warning'></i>`);
+      $('#total-rating').html(`(${r.total} lượt đánh giá)`);
+      // Nếu user đã vote, tô màu sao
+      let user = JSON.parse(localStorage.getItem('user') || 'null');
+      let myVote = 0;
+      if (user && user.user_id) {
+        let found = r.ratings.find(rt => rt.user_id === user.user_id);
+        if (found) myVote = found.rating;
+      }
+      $('.star-vote').each(function(){
+        let star = parseInt($(this).data('star'));
+        $(this).removeClass('bi-star-fill text-warning').addClass('bi-star');
+        if (star <= myVote) $(this).removeClass('bi-star').addClass('bi-star-fill text-warning');
+      });
+    }, 'json');
+    // Sự kiện vote
+    $(document).on('click', '.star-vote', function(){
+      let user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (!user || !user.user_id) { alert('Vui lòng đăng nhập để đánh giá!'); return; }
       let star = parseInt($(this).data('star'));
-      localStorage.setItem(voteKey, star);
-      showProductDetail(p.product_id);
+      $.ajax({
+        url: 'http://localhost/persolwebstore/backend/api/rating.php',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({product_id: p.product_id, user_id: user.user_id, rating: star}),
+        success: function(){ showProductDetail(p.product_id); },
+        error: function(){ alert('Lỗi khi gửi đánh giá!'); }
+      });
     });
-    // Sự kiện tăng/giảm số lượng
-    $('#btn-qty-minus').click(function(){
-      let v = parseInt($('#detail-qty').val())||1;
-      if(v>1) $('#detail-qty').val(v-1);
+    // Lấy bình luận
+    function loadComments() {
+      $.get('http://localhost/persolwebstore/backend/api/comment.php?product_id=' + p.product_id, function(res) {
+        let html = '';
+        if (!res.comments || !res.comments.length) {
+          html = `<div class='text-muted'>Chưa có bình luận nào.</div>`;
+        } else {
+          res.comments.forEach(c => {
+            html += `<div class='border rounded p-2 mb-2 bg-light'><b>${c.username||'Ẩn danh'}</b> <span class='text-muted small'>${c.created_at}</span><br>${escapeHtml(c.comment)}`;
+            let user = JSON.parse(localStorage.getItem('user') || 'null');
+            if (user && user.user_id && c.user_id === user.user_id) {
+              html += ` <a href='#' class='text-danger ms-2 btn-delete-comment' data-id='${c.comment_id}' style='font-size:0.9em'>Xóa</a>`;
+            }
+            html += `</div>`;
+          });
+        }
+        $('#comment-list').html(html);
+      }, 'json');
+    }
+    loadComments();
+    // Gửi bình luận
+    $(document).off('submit', '#comment-form').on('submit', '#comment-form', function(e){
+      e.preventDefault();
+      let user = JSON.parse(localStorage.getItem('user') || 'null');
+      let val = $('#comment-input').val().trim();
+      if (!val) return;
+      $.ajax({
+        url: 'http://localhost/persolwebstore/backend/api/comment.php',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({product_id: p.product_id, user_id: user.user_id, username: user.fullname || user.username || user.email, comment: val}),
+        success: function(){ $('#comment-input').val(''); loadComments(); },
+        error: function(){ alert('Lỗi khi gửi bình luận!'); }
+      });
     });
-    $('#btn-qty-plus').click(function(){
-      let v = parseInt($('#detail-qty').val())||1;
-      $('#detail-qty').val(v+1);
+    // Xóa bình luận
+    $(document).off('click', '.btn-delete-comment').on('click', '.btn-delete-comment', function(e){
+      e.preventDefault();
+      if (!confirm('Bạn chắc chắn muốn xóa bình luận này?')) return;
+      let id = $(this).data('id');
+      $.ajax({
+        url: 'http://localhost/persolwebstore/backend/api/comment.php',
+        method: 'DELETE',
+        data: 'id=' + id,
+        success: function(){ loadComments(); },
+        error: function(){ alert('Lỗi khi xóa bình luận!'); }
+      });
     });
     // Thêm vào giỏ với số lượng chọn
     $('#btn-detail-add-cart').click(function(){
@@ -364,6 +488,8 @@ $(window).on('hashchange', function() {
   let catMatch = hash.match(/^#category-(\d+)(?:-page-(\d+))?$/);
   let prodMatch = hash.match(/^#products(?:-page-(\d+))?$/);
   let searchMatch = hash.match(/^#search-([^-]+)(?:-page-(\d+))?$/);
+  let priceMinMatch = hash.match(/^#search-([^-]+)-price-min-([^-]+)(?:-page-(\d+))?$/);
+  let priceMaxMatch = hash.match(/^#search-([^-]+)-price-max-([^-]+)(?:-page-(\d+))?$/);
   
   if (catMatch) {
     const catId = catMatch[1];
@@ -376,6 +502,16 @@ $(window).on('hashchange', function() {
     const searchTerm = decodeURIComponent(searchMatch[1]);
     const page = searchMatch[2] ? parseInt(searchMatch[2]) : 1;
     loadProducts(null, page, searchTerm);
+  } else if (priceMinMatch) {
+    const searchTerm = decodeURIComponent(priceMinMatch[1]);
+    const priceMin = decodeURIComponent(priceMinMatch[2]);
+    const page = priceMinMatch[3] ? parseInt(priceMinMatch[3]) : 1;
+    loadProducts(null, page, searchTerm, priceMin);
+  } else if (priceMaxMatch) {
+    const searchTerm = decodeURIComponent(priceMaxMatch[1]);
+    const priceMax = decodeURIComponent(priceMaxMatch[2]);
+    const page = priceMaxMatch[3] ? parseInt(priceMaxMatch[3]) : 1;
+    loadProducts(null, page, searchTerm, '', priceMax);
   }
 });
 // Khi vào trang lần đầu
@@ -384,6 +520,8 @@ $(window).on('hashchange', function() {
   let catMatch = hash.match(/^#category-(\d+)(?:-page-(\d+))?$/);
   let prodMatch = hash.match(/^#products(?:-page-(\d+))?$/);
   let searchMatch = hash.match(/^#search-([^-]+)(?:-page-(\d+))?$/);
+  let priceMinMatch = hash.match(/^#search-([^-]+)-price-min-([^-]+)(?:-page-(\d+))?$/);
+  let priceMaxMatch = hash.match(/^#search-([^-]+)-price-max-([^-]+)(?:-page-(\d+))?$/);
   
   if (catMatch) {
     const catId = catMatch[1];
@@ -396,6 +534,16 @@ $(window).on('hashchange', function() {
     const searchTerm = decodeURIComponent(searchMatch[1]);
     const page = searchMatch[2] ? parseInt(searchMatch[2]) : 1;
     loadProducts(null, page, searchTerm);
+  } else if (priceMinMatch) {
+    const searchTerm = decodeURIComponent(priceMinMatch[1]);
+    const priceMin = decodeURIComponent(priceMinMatch[2]);
+    const page = priceMinMatch[3] ? parseInt(priceMinMatch[3]) : 1;
+    loadProducts(null, page, searchTerm, priceMin);
+  } else if (priceMaxMatch) {
+    const searchTerm = decodeURIComponent(priceMaxMatch[1]);
+    const priceMax = decodeURIComponent(priceMaxMatch[2]);
+    const page = priceMaxMatch[3] ? parseInt(priceMaxMatch[3]) : 1;
+    loadProducts(null, page, searchTerm, '', priceMax);
   } else {
     loadProducts();
   }

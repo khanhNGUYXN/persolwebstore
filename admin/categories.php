@@ -15,8 +15,15 @@ if (isset($_POST['save'])) {
 // Xóa category (xóa luôn nhánh con do ON DELETE CASCADE)
 if (isset($_GET['delete'])) {
   $id = intval($_GET['delete']);
-  $pdo->prepare('DELETE FROM categories WHERE category_id=?')->execute([$id]);
-  header('Location: categories.php'); exit;
+  // Kiểm tra còn sản phẩm không
+  $count = $pdo->prepare('SELECT COUNT(*) FROM products WHERE category_id=?');
+  $count->execute([$id]);
+  if ($count->fetchColumn() > 0) {
+    echo '<div class="alert alert-danger">Không thể xóa: Vẫn còn sản phẩm thuộc danh mục này!</div>';
+  } else {
+    $pdo->prepare('DELETE FROM categories WHERE category_id=?')->execute([$id]);
+    header('Location: categories.php'); exit;
+  }
 }
 // Lấy danh sách categories
 $stmt = $pdo->query('SELECT * FROM categories ORDER BY name');
